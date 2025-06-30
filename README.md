@@ -68,7 +68,8 @@ A professional deep learning web app to classify 15 animal species from images, 
    >    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
    > ```
    > See [PyTorch Get Started](https://pytorch.org/get-started/locally/) for more options.
-
+4. **Install the dataset from the google drive:**
+   >link : (https://drive.google.com/drive/folders/1RcyYiFdH6dt7TbehuZ-B8h9bhL03xFfA?usp=sharing)
 ---
 
 ## 🖥️ Running the Backend
