@@ -5,7 +5,7 @@ from PIL import Image, UnidentifiedImageError
 
 
 class AnimalDataset(Dataset):
-    def _init_(self, root_dir, transform=None):
+    def __init__(self, root_dir, transform=None):
         self.root_dir = root_dir
         self.transform = transform
         self.samples = []
@@ -13,7 +13,7 @@ class AnimalDataset(Dataset):
             cls_name: idx for idx, cls_name in enumerate(sorted(os.listdir(root_dir)))
         }
 
-        for cls_name, in self.class_map:
+        for cls_name in self.class_map:
             folder = os.path.join(root_dir, cls_name)
             print(f"[INFO] Processing folder: {folder}")
             for file in os.listdir(folder):
@@ -30,10 +30,10 @@ class AnimalDataset(Dataset):
                         print(
                             f"[WARNING] Skipping invalid or corrupted image: {img_path}")
 
-    def _len_(self):
+    def __len__(self):
         return len(self.samples)
 
-    def _getitem_(self, idx):
+    def __getitem__(self, idx):
         img_path, label = self.samples[idx]
         try:
             img = Image.open(img_path).convert('RGB')
