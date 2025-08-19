@@ -1,7 +1,7 @@
-# Evaluate.py
-from sklearn.metrics import confusion_matrix, classification_report
-import seaborn as sns
+# evaluate.py
+from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
+import seaborn as sns
 import torch
 
 
@@ -14,7 +14,7 @@ def evaluate(model, loader, classes):
 
     with torch.no_grad():
         for batch in loader:
-            images, labels = device
+            images, labels = batch
             images = images.to(device)
             labels = labels.to(device)
 
@@ -24,26 +24,29 @@ def evaluate(model, loader, classes):
             all_preds.append(preds)
             all_labels.append(labels)
 
-    # combine all predictions and labels
+    # 🧠 Combine all predictions and labels
     y_pred = torch.cat(all_preds).cpu().numpy()
     y_true = torch.cat(all_labels).cpu().numpy()
 
-    # resritct to classes actually used in test set
-    used_labels = sorted(set(y_true)) | set(y_pred)
+    # 🏷️ Restrict to classes actually used in test set
+    used_labels = sorted(set(y_true) | set(y_pred))
     used_class_names = [classes[i] for i in used_labels]
 
-    # classification report
-    print("\n Classification report")
+    # 📋 Classification Report
+    print("\n📋 Classification Report:")
     print(classification_report(y_true, y_pred,
-          labels=used_labels, target_names=used_class_names))
+                                labels=used_labels,
+                                target_names=used_class_names))
 
-    # confusion matrix
+    # 🧩 Confusion Matrix
     cm = confusion_matrix(y_true, y_pred, labels=used_labels)
     plt.figure(figsize=(12, 10))
-    sns.heatmap(cm, annot=True, fmt='d', xticklabels=used_class_names,
-                yticklabels=used_class_names, cmap='Blues')
-    plt.title("Confusion matrix")
-    plt.xlabel("Prediction")
+    sns.heatmap(cm, annot=True, fmt='d',
+                xticklabels=used_class_names,
+                yticklabels=used_class_names,
+                cmap="Blues")
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted")
     plt.ylabel("Actual")
     plt.tight_layout()
     plt.show()

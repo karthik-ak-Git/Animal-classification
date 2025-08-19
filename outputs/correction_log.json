@@ -1,0 +1,170 @@
+[
+  {
+    "image": "OIP (3).jpeg",
+    "predicted": "Kangaroo",
+    "actual": "kangaroo",
+    "timestamp": "2025-06-22 21:59:24.309257"
+  },
+  {
+    "image": "animal-tiger-wildlife-38278.jpg",
+    "predicted": "Tiger",
+    "actual": "tiger",
+    "timestamp": "2025-06-22 22:00:49.219584"
+  },
+  {
+    "image": "kitty-cat-kitten-pet-45201.jpeg",
+    "predicted": "Cat",
+    "actual": "cat",
+    "timestamp": "2025-06-22 22:02:27.358182"
+  },
+  {
+    "image": "OIP (1).jpeg",
+    "predicted": "Bird",
+    "actual": "bird",
+    "timestamp": "2025-06-23 12:47:49.506426"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "bear",
+    "timestamp": "2025-06-24 17:09:57.248758"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 18:54:25.240953"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 18:56:46.456734"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 18:56:49.741922"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 18:56:53.023168"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 18:58:50.797657"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 19:00:01.207530"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 19:02:41.983793"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 19:03:19.682737"
+  },
+  {
+    "image": "440px-Black_bear_in_yellowstone_3-1726108226.jpg",
+    "predicted": "Grizzly_Bear",
+    "actual": "American_Black_Bear",
+    "timestamp": "2025-06-24 19:03:39.867226"
+  },
+  {
+    "image": "Duck-Mallard-Ducks.jpeg",
+    "predicted": "Zebra",
+    "actual": "Ducks",
+    "timestamp": "2025-06-28 20:25:52.806920"
+  },
+  {
+    "image": "meet-the-arabian-horse-1886131-02-64d4f27ce4a0494ead528696c457083f.jpg",
+    "predicted": "Arabian Horse",
+    "actual": "Arabian Horse",
+    "timestamp": "2025-06-29 17:42:23.765535"
+  },
+  {
+    "image": "R.jpeg",
+    "predicted": "Angus",
+    "actual": "Angus",
+    "timestamp": "2025-06-29 17:57:24.134652"
+  },
+  {
+    "image": "Duck-Mallard-Ducks.jpeg",
+    "predicted": "Ducks",
+    "actual": "Ducks",
+    "timestamp": "2025-06-29 18:00:27.007585"
+  },
+  {
+    "image": "202352-animals-macaws-nature-closeup-birds-parrot.jpg",
+    "predicted": "Bird",
+    "actual": "Macaw",
+    "timestamp": "2025-06-30 20:35:22.244794"
+  },
+  {
+    "image": "202352-animals-macaws-nature-closeup-birds-parrot.jpg",
+    "predicted": "Bird",
+    "actual": "Macaw",
+    "timestamp": "2025-06-30 20:40:28.999341"
+  },
+  {
+    "image": "202352-animals-macaws-nature-closeup-birds-parrot.jpg",
+    "predicted": "Bird",
+    "actual": "Macaw",
+    "timestamp": "2025-06-30 20:42:13.210499"
+  },
+  {
+    "image": "R (1).jpeg",
+    "predicted": "Asiatic Lion",
+    "actual": "African Lion",
+    "timestamp": "2025-06-30 21:14:52.813513"
+  },
+  {
+    "image": "meet-the-arabian-horse-1886131-02-64d4f27ce4a0494ead528696c457083f.jpg",
+    "predicted": "Arabian Horse",
+    "actual": "Arabian Horse",
+    "timestamp": "2025-06-30 21:18:41.788459"
+  },
+  {
+    "image": "meet-the-arabian-horse-1886131-02-64d4f27ce4a0494ead528696c457083f.jpg",
+    "predicted": "Arabian Horse",
+    "actual": "Arabian Horse",
+    "timestamp": "2025-06-30 21:37:36.243020"
+  },
+  {
+    "image": "meet-the-arabian-horse-1886131-02-64d4f27ce4a0494ead528696c457083f.jpg",
+    "predicted": "Arabian Horse",
+    "actual": "Arabian Horse",
+    "timestamp": "2025-07-01 12:54:35.302711"
+  },
+  {
+    "image": "SC-Tiger-II-800-1.jpg",
+    "predicted": "Siberian Tiger",
+    "actual": "Bengal Tiger",
+    "timestamp": "2025-07-16 22:31:25.559397"
+  },
+  {
+    "image": "R.jpg",
+    "predicted": "Lion",
+    "actual": "African Lion",
+    "timestamp": "2025-07-23 12:30:05.082892"
+  },
+  {
+    "image": "wild-animal-pictures-ntnctkoj3hi4jlfj.jpg",
+    "predicted": "Panda",
+    "actual": "Red Panda",
+    "timestamp": "2025-07-23 12:33:41.243725"
+  }
+]

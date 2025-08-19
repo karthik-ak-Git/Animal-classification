@@ -9,13 +9,14 @@ def show_batch_images(dataloader, class_map):
 
     fig, axs = plt.subplots(3, 3, figsize=(10, 10))
     axs = axs.flatten()
-    class_names = list(class_map.keys())\
+    class_names = list(class_map.keys())
 
     for img, lbl, ax in zip(images[:9], labels[:9], axs):
         img = img.permute(1, 2, 0).numpy()
         ax.imshow(img)
         ax.set_title(class_names[lbl])
         ax.axis('off')
+
     plt.tight_layout()
     plt.show()
 
