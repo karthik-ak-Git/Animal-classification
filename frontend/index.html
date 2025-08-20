@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Classifier</title>
     <link rel="icon" type="image/svg+xml" href="frontend/favicon.svg">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -49,12 +49,13 @@
                                 <h3 class="upload-title">Upload an image</h3>
                                 <p class="upload-description">Drag and drop or click to select</p>
                                 <input type="file" id="image-upload" class="form-control d-none" accept="image/*">
-                                <button class="btn btn-primary btn-upload" onclick="document.getElementById('image-upload').click()">
+                                <button class="btn btn-primary btn-upload"
+                                    onclick="document.getElementById('image-upload').click()">
                                     <i class="bi bi-upload me-2"></i>Choose Image
                                 </button>
                             </div>
                         </div>
-                        
+
                         <!-- Image Preview -->
                         <div id="image-preview-container" class="image-preview-container d-none">
                             <div class="preview-wrapper">
@@ -65,7 +66,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Analyze Button -->
                     <div class="analyze-section">
                         <button id="predict-button" class="btn btn-primary btn-analyze" disabled>
@@ -83,7 +84,7 @@
                                 <span>AI Analysis</span>
                             </div>
                         </div>
-                        
+
                         <div class="prediction-content">
                             <!-- Main Class Display -->
                             <div id="main-class-display" class="main-class-display">
@@ -92,7 +93,7 @@
                                     <div class="main-class-label" id="main-class-label"></div>
                                 </div>
                             </div>
-                            
+
                             <!-- Breed Display -->
                             <div id="breed-display" class="breed-display d-none">
                                 <div class="breed-arrow">→</div>
@@ -102,7 +103,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Action Buttons -->
                         <div class="prediction-actions">
                             <button id="copy-breed-btn" class="btn btn-outline-primary btn-sm d-none">

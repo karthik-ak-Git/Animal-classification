@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
-        
+
         toastContainer.appendChild(toast);
-        
+
         // Auto remove after duration
         setTimeout(() => {
             toast.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Populate dropdowns
     function populateClassDropdowns() {
         correctionDropdown.innerHTML = '<option value="">Select correct class...</option>';
-        
+
         animalClasses.forEach((animal) => {
             const displayName = animal.replace(/_/g, ' ');
             const option = document.createElement('option');
@@ -139,12 +139,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             imagePreview.src = e.target.result;
             imagePreviewContainer.classList.remove('d-none');
             uploadArea.classList.add('d-none');
             predictButton.disabled = false;
-            
+
             // Animate in the preview
             imagePreviewContainer.style.animation = 'slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
         };
@@ -152,13 +152,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Remove image
-    window.removeImage = function() {
+    window.removeImage = function () {
         imageUpload.value = '';
         imagePreviewContainer.classList.add('d-none');
         uploadArea.classList.remove('d-none');
         predictButton.disabled = true;
         resultContainer.classList.add('d-none');
-        
+
         // Reset animations
         imagePreviewContainer.style.animation = '';
     };
@@ -168,16 +168,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const baseClass = getBaseClass(result.prediction);
         const emoji = getAnimalEmoji(result.prediction);
         const confidence = (result.confidence * 100).toFixed(1);
-        
+
         // Reset display
         resultContainer.classList.remove('d-none');
         breedDisplay.classList.add('d-none');
         copyBreedBtn.classList.add('d-none');
-        
+
         // Show main class with animation
         classEmoji.textContent = emoji;
         mainClassLabel.textContent = baseClass;
-        
+
         // Wait for main class animation, then show breed
         setTimeout(() => {
             if (result.breeds && result.breeds.length > 0) {
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
             copyBreedBtn.classList.add('copy-success');
             copyBreedBtn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
             showToast('Breed name copied to clipboard', 'success', 2000);
-            
+
             setTimeout(() => {
                 copyBreedBtn.classList.remove('copy-success');
                 copyBreedBtn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy Breed';
@@ -261,22 +261,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const res = await fetch('/predict', { method: 'POST', body: formData });
-            
+
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
-            
+
             const result = await res.json();
-            
+
             if (result.error) {
                 throw new Error(result.error);
             }
-            
+
             await displayPrediction(result);
             showToast('Analysis completed successfully', 'success');
         } catch (err) {
             console.error('Prediction error:', err);
-            
+
             // Show error in prediction card
             classEmoji.textContent = '❌';
             mainClassLabel.textContent = 'Error';
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
             breedName.textContent = 'Failed to analyze image';
             confidenceText.textContent = 'Please try again';
             resultContainer.classList.remove('d-none');
-            
+
             showToast('Failed to analyze image. Please try again.', 'error');
         } finally {
             predictButton.disabled = false;
@@ -296,12 +296,12 @@ document.addEventListener('DOMContentLoaded', function () {
     submitCorrectionButton.addEventListener('click', async () => {
         const corrected = correctionDropdown.value;
         const imageFile = imageUpload.files[0];
-        
+
         if (!corrected) {
             showToast('Please select a correct class', 'error');
             return;
         }
-        
+
         if (!imageFile) {
             showToast('No image to submit feedback for', 'error');
             return;
@@ -317,17 +317,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const res = await fetch('/feedback', { method: 'POST', body: formData });
-            
+
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
-            
+
             const result = await res.json();
 
             showToast(result.message, 'success');
             feedbackCard.classList.remove('show');
             submitCorrectionButton.innerHTML = '<i class="bi bi-check me-1"></i>Submitted!';
-            
+
             setTimeout(() => {
                 submitCorrectionButton.innerHTML = '<i class="bi bi-check me-1"></i>Submit Correction';
                 submitCorrectionButton.disabled = false;
