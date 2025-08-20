@@ -5,7 +5,7 @@ import torch
 from PIL import Image
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from torchvision import transforms
 import json
@@ -55,12 +55,11 @@ app.add_middleware(
 # Setup device (CPU for Vercel)
 device = torch.device("cpu")
 
-# Initialize class names
+# Initialize class names with fallback
 try:
     class_names = get_class_names_from_dataset()
     num_classes = len(class_names)
 except:
-    # Fallback class names for deployment
     class_names = ["Bear", "Bird", "Cat", "Cow", "Deer", "Dog", "Dolphin",
                    "Elephant", "Giraffe", "Horse", "Kangaroo", "Lion", "Panda",
                    "Tiger", "Zebra"]
@@ -72,41 +71,33 @@ if num_classes == 0:
                    "Tiger", "Zebra"]
     num_classes = len(class_names)
 
-# Load model lazily to reduce cold start time
-model = None
-model_loaded = False
-
-
-def load_model():
-    """Load model on first request to reduce package size"""
-    global model, model_loaded
-    if model_loaded:
-        return model
-
-    try:
-        model = AnimalCNN(num_classes=num_classes).to(device)
-        model_path = os.path.join(parent_dir, "outputs", "best_model.pth")
-
-        if os.path.exists(model_path):
-            model.load_state_dict(torch.load(model_path, map_location=device))
-            model.eval()
-            model_loaded = True
-            print(f"✅ Model loaded with {num_classes} classes")
-            return model
-        else:
-            print("❌ Model file not found")
-            return None
-    except Exception as e:
-        print(f"❌ Error loading model: {e}")
-        return None  # Image transform
-
-
+# Image transform
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406],
                          [0.229, 0.224, 0.225])
 ])
+
+# Demo mode - return simulated results when model is not available
+DEMO_MODE = True
+
+
+def get_demo_prediction(image_name):
+    """Return demo predictions based on common image names"""
+    image_name = image_name.lower()
+
+    if any(keyword in image_name for keyword in ['dog', 'puppy', 'canine']):
+        return "Dog", "Dog", 0.92, ["Golden Retriever", "Labrador", "German Shepherd"]
+    elif any(keyword in image_name for keyword in ['cat', 'kitten', 'feline']):
+        return "Cat", "Cat", 0.89, ["Persian Cat", "Siamese Cat", "Maine Coon"]
+    elif any(keyword in image_name for keyword in ['bird', 'eagle', 'parrot']):
+        return "Bird", "Bird", 0.85, ["Eagle", "Parrot", "Owl"]
+    elif any(keyword in image_name for keyword in ['lion', 'tiger', 'big cat']):
+        return "Lion", "Lion", 0.94, ["African Lion", "Asiatic Lion"]
+    else:
+        return "Dog", "Dog", 0.75, ["Mixed Breed", "Unknown Breed"]
+
 
 # Mount static files
 try:
@@ -130,15 +121,25 @@ async def serve_index():
             return HTMLResponse(content="""
             <!DOCTYPE html>
             <html>
-            <head><title>Animal Classifier</title></head>
+            <head>
+                <title>Animal Classifier - Demo Mode</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; }
+                    .demo-banner { background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+                </style>
+            </head>
             <body>
-                <h1>Animal Classification API</h1>
-                <p>API is running. Please upload the frontend files.</p>
-                <p>Available endpoints:</p>
+                <div class="demo-banner">
+                    ⚠️ <strong>Demo Mode:</strong> Full model not loaded. API will return simulated results.
+                </div>
+                <h1>🐾 Animal Classification API</h1>
+                <p>Upload an animal image to get classification results.</p>
+                <p><strong>Available endpoints:</strong></p>
                 <ul>
                     <li>POST /predict - Upload image for classification</li>
                     <li>GET /classes - Get available animal classes</li>
                     <li>POST /feedback - Submit classification feedback</li>
+                    <li>GET /health - API health check</li>
                 </ul>
             </body>
             </html>
@@ -150,41 +151,26 @@ async def serve_index():
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     """Predict animal class from uploaded image"""
-    # Load model on first request
-    current_model = load_model()
-    if current_model is None:
-        return {"error": "Model not available. Please check deployment."}
-
     try:
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
-        input_tensor = transform(image).unsqueeze(0).to(device)
+        filename = file.filename or "unknown.jpg"
 
-        with torch.no_grad():
-            output = current_model(input_tensor)
-            pred_idx = output.argmax(dim=1).item()
+        if DEMO_MODE:
+            # Return demo prediction
+            predicted_class, base_class, confidence, breeds = get_demo_prediction(
+                filename)
+            return {
+                "prediction": predicted_class,
+                "base_class": base_class,
+                "confidence": confidence,
+                "breeds": breeds,
+                "demo_mode": True,
+                "message": "Demo mode - simulated results"
+            }
 
-        predicted_class = class_names[pred_idx]
-        confidence = torch.softmax(output, dim=1)[0][pred_idx].item()
+        # If model was available, real prediction would go here
+        return {"error": "Model not available in this deployment"}
 
-        def get_base_class(label: str):
-            label = label.replace("_", " ")
-            for keyword in ["Bear", "Cat", "Dog", "Deer", "Bird", "Cow", "Horse",
-                            "Dolphin", "Elephant", "Giraffe", "Kangaroo", "Lion",
-                            "Panda", "Tiger", "Zebra"]:
-                if keyword in label:
-                    return keyword
-            return label
-
-        base_class = get_base_class(predicted_class)
-        breed_suggestions = fetch_species_names(predicted_class, top_n=3)
-
-        return {
-            "prediction": predicted_class,
-            "base_class": base_class,
-            "confidence": round(confidence, 4),
-            "breeds": breed_suggestions
-        }
     except Exception as e:
         raise HTTPException(
             status_code=400, detail=f"Error processing image: {str(e)}")
@@ -204,7 +190,7 @@ async def feedback(
         # Log the correction (simplified for deployment)
         log_correction(filename, predicted, actual)
 
-        return {"message": "✅ Feedback received and logged."}
+        return {"message": "✅ Feedback received and logged (demo mode)."}
     except Exception as e:
         return {"message": f"⚠️ Error processing feedback: {e}"}
 
@@ -220,9 +206,10 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "model_loaded": model_loaded,
+        "demo_mode": DEMO_MODE,
+        "model_loaded": False,
         "num_classes": num_classes,
-        "classes": class_names[:10]  # Show first 10 classes only
+        "classes": class_names[:10]
     }
 
 # For Vercel deployment
