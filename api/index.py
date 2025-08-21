@@ -59,7 +59,7 @@ async def root():
 
 @app.get("/favicon.ico")
 async def favicon():
-    """Serve favicon"""
+    """Serve favicon.ico - browsers automatically request this"""
     try:
         # Try to serve the actual favicon first
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -501,4 +501,4 @@ async def submit_feedback(
 # For local development
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
