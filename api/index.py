@@ -2,15 +2,11 @@ from http.server import BaseHTTPRequestHandler
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
-import torch
-import torch.nn.functional as F
-from torchvision import transforms
 from PIL import Image
 import io
 import json
 import os
 import base64
-from model import AnimalCNN
 
 # Initialize FastAPI app
 app = FastAPI(title="Animal Classification API", version="1.0.0")
@@ -25,28 +21,15 @@ app.add_middleware(
 )
 
 # Global variables
-model = None
 class_names = []
-device = None
 transform = None
 
 @app.on_event("startup")
 async def load_model():
-    """Load the trained model on startup"""
-    global model, class_names, device, transform
+    """Initialize API on startup"""
+    global class_names, transform
     
     try:
-        # Setup device
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-        # Setup transforms
-        transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                               std=[0.229, 0.224, 0.225])
-        ])
-        
         # Load class names (hardcoded for Vercel compatibility)
         class_names = [
             "African Elephant", "African Lion", "African Wildcat", "Amazon parrot",
@@ -67,8 +50,6 @@ async def load_model():
             "Woodpeckers", "Zebra", "pigeons"
         ]
         
-        # For Vercel, we'll use a lightweight approach
-        # Load model only when needed (lazy loading)
         print(f"✅ API initialized with {len(class_names)} classes")
         
     except Exception as e:
@@ -114,12 +95,9 @@ async def predict_animal(file: UploadFile = File(...)):
         image_data = await file.read()
         image = Image.open(io.BytesIO(image_data)).convert('RGB')
         
-        # Apply transforms
-        image_tensor = transform(image).unsqueeze(0).to(device)
-        
         # For Vercel deployment, we'll use a simplified prediction
-        # In production, you'd load the model here
-        prediction = "Cat"  # Placeholder - replace with actual model inference
+        # This is a placeholder - in production you'd load the actual model
+        prediction = "Cat"  # Placeholder prediction
         confidence = 0.85
         base_category = "Cat"
         breeds = ["Persian Cat", "Siamese Cat", "Maine Coon"]
