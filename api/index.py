@@ -77,9 +77,69 @@ async def favicon():
         # Return embedded favicon if anything fails
         return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
 
+@app.get("/static/favicon.svg")
+async def static_favicon():
+    """Serve favicon.svg at the exact path frontend expects"""
+    try:
+        # Try to serve the actual favicon first
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
+        favicon_path = os.path.join(frontend_dir, "favicon.svg")
+        
+        if os.path.exists(favicon_path):
+            with open(favicon_path, "r", encoding="utf-8") as f:
+                svg_content = f.read()
+            return Response(content=svg_content, media_type="image/svg+xml")
+        else:
+            # Return embedded favicon if file not found
+            return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
+    except Exception:
+        # Return embedded favicon if anything fails
+        return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
+
+@app.get("/static/styles.css")
+async def static_css():
+    """Serve styles.css at the exact path frontend expects"""
+    try:
+        # Try to serve the actual CSS file first
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
+        css_path = os.path.join(frontend_dir, "styles.css")
+        
+        if os.path.exists(css_path):
+            with open(css_path, "r", encoding="utf-8") as f:
+                css_content = f.read()
+            return Response(content=css_content, media_type="text/css")
+        else:
+            # Return embedded CSS if file not found
+            return Response(content=get_embedded_css(), media_type="text/css")
+    except Exception:
+        # Return embedded CSS if anything fails
+        return Response(content=get_embedded_css(), media_type="text/css")
+
+@app.get("/static/scripts.js")
+async def static_js():
+    """Serve scripts.js at the exact path frontend expects"""
+    try:
+        # Try to serve the actual JavaScript file first
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
+        js_path = os.path.join(frontend_dir, "scripts.js")
+        
+        if os.path.exists(js_path):
+            with open(js_path, "r", encoding="utf-8") as f:
+                js_content = f.read()
+            return Response(content=js_content, media_type="application/javascript")
+        else:
+            # Return embedded JavaScript if file not found
+            return Response(content=get_embedded_js(), media_type="application/javascript")
+    except Exception:
+        # Return embedded JavaScript if anything fails
+        return Response(content=get_embedded_js(), media_type="application/javascript")
+
 @app.get("/static/{file_path:path}")
 async def static_files(file_path: str):
-    """Serve static files (CSS, JS, images)"""
+    """Serve other static files (fallback)"""
     try:
         # Try to serve the actual file first
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -104,7 +164,7 @@ async def static_files(file_path: str):
                 content = f.read()
             return Response(content=content, media_type=content_type)
         else:
-            # If file not found, serve embedded content
+            # If file not found, serve embedded content based on file type
             return serve_embedded_file(file_path)
             
     except Exception:
