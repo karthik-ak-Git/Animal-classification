@@ -1,8 +1,13 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
 import json
 import os
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(title="Animal Classification API", version="1.0.0")
@@ -36,115 +41,152 @@ ANIMAL_CLASSES = [
     "Woodpeckers", "Zebra", "pigeons"
 ]
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all requests to debug 404 issues"""
+    logger.info(f"Request: {request.method} {request.url.path}")
+    response = await call_next(request)
+    logger.info(f"Response: {response.status_code}")
+    return response
+
 @app.get("/")
 async def root():
     """Serve the main frontend interface"""
+    logger.info("Serving root endpoint")
     try:
         # Try to read the actual frontend HTML file first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         html_path = os.path.join(frontend_dir, "index.html")
         
+        logger.info(f"Looking for HTML at: {html_path}")
+        logger.info(f"File exists: {os.path.exists(html_path)}")
+        
         if os.path.exists(html_path):
             with open(html_path, "r", encoding="utf-8") as f:
                 html_content = f.read()
+            logger.info(f"HTML content length: {len(html_content)}")
             return HTMLResponse(content=html_content)
         else:
-            # If file not found, serve embedded HTML
+            logger.warning("HTML file not found, serving embedded content")
             return HTMLResponse(content=get_embedded_html())
             
-    except Exception:
-        # If anything fails, serve embedded HTML
+    except Exception as e:
+        logger.error(f"Error serving HTML: {e}")
         return HTMLResponse(content=get_embedded_html())
 
 @app.get("/favicon.ico")
 async def favicon():
     """Serve favicon.ico - browsers automatically request this"""
+    logger.info("Serving favicon.ico")
     try:
         # Try to serve the actual favicon first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         favicon_path = os.path.join(frontend_dir, "favicon.svg")
         
+        logger.info(f"Looking for favicon at: {favicon_path}")
+        logger.info(f"File exists: {os.path.exists(favicon_path)}")
+        
         if os.path.exists(favicon_path):
             with open(favicon_path, "r", encoding="utf-8") as f:
                 svg_content = f.read()
+            logger.info(f"Favicon content length: {len(svg_content)}")
             return Response(content=svg_content, media_type="image/svg+xml")
         else:
-            # Return embedded favicon if file not found
+            logger.warning("Favicon file not found, serving embedded content")
             return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
-    except Exception:
-        # Return embedded favicon if anything fails
+    except Exception as e:
+        logger.error(f"Error serving favicon: {e}")
         return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
 
 @app.get("/static/favicon.svg")
 async def static_favicon():
     """Serve favicon.svg at the exact path frontend expects"""
+    logger.info("Serving static/favicon.svg")
     try:
         # Try to serve the actual favicon first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         favicon_path = os.path.join(frontend_dir, "favicon.svg")
         
+        logger.info(f"Looking for favicon at: {favicon_path}")
+        logger.info(f"File exists: {os.path.exists(favicon_path)}")
+        
         if os.path.exists(favicon_path):
             with open(favicon_path, "r", encoding="utf-8") as f:
                 svg_content = f.read()
+            logger.info(f"Favicon content length: {len(svg_content)}")
             return Response(content=svg_content, media_type="image/svg+xml")
         else:
-            # Return embedded favicon if file not found
+            logger.warning("Favicon file not found, serving embedded content")
             return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
-    except Exception:
-        # Return embedded favicon if anything fails
+    except Exception as e:
+        logger.error(f"Error serving favicon: {e}")
         return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
 
 @app.get("/static/styles.css")
 async def static_css():
     """Serve styles.css at the exact path frontend expects"""
+    logger.info("Serving static/styles.css")
     try:
         # Try to serve the actual CSS file first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         css_path = os.path.join(frontend_dir, "styles.css")
         
+        logger.info(f"Looking for CSS at: {css_path}")
+        logger.info(f"File exists: {os.path.exists(css_path)}")
+        
         if os.path.exists(css_path):
             with open(css_path, "r", encoding="utf-8") as f:
                 css_content = f.read()
+            logger.info(f"CSS content length: {len(css_content)}")
             return Response(content=css_content, media_type="text/css")
         else:
-            # Return embedded CSS if file not found
+            logger.warning("CSS file not found, serving embedded content")
             return Response(content=get_embedded_css(), media_type="text/css")
-    except Exception:
-        # Return embedded CSS if anything fails
+    except Exception as e:
+        logger.error(f"Error serving CSS: {e}")
         return Response(content=get_embedded_css(), media_type="text/css")
 
 @app.get("/static/scripts.js")
 async def static_js():
     """Serve scripts.js at the exact path frontend expects"""
+    logger.info("Serving static/scripts.js")
     try:
         # Try to serve the actual JavaScript file first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         js_path = os.path.join(frontend_dir, "scripts.js")
         
+        logger.info(f"Looking for JS at: {js_path}")
+        logger.info(f"File exists: {os.path.exists(js_path)}")
+        
         if os.path.exists(js_path):
             with open(js_path, "r", encoding="utf-8") as f:
                 js_content = f.read()
+            logger.info(f"JS content length: {len(js_content)}")
             return Response(content=js_content, media_type="application/javascript")
         else:
-            # Return embedded JavaScript if file not found
+            logger.warning("JS file not found, serving embedded content")
             return Response(content=get_embedded_js(), media_type="application/javascript")
-    except Exception:
-        # Return embedded JavaScript if anything fails
+    except Exception as e:
+        logger.error(f"Error serving JS: {e}")
         return Response(content=get_embedded_js(), media_type="application/javascript")
 
 @app.get("/static/{file_path:path}")
 async def static_files(file_path: str):
     """Serve other static files (fallback)"""
+    logger.info(f"Serving static file: {file_path}")
     try:
         # Try to serve the actual file first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         full_path = os.path.join(frontend_dir, file_path)
+        
+        logger.info(f"Looking for file at: {full_path}")
+        logger.info(f"File exists: {os.path.exists(full_path)}")
         
         if os.path.exists(full_path):
             # Determine content type based on file extension
@@ -162,12 +204,15 @@ async def static_files(file_path: str):
             
             with open(full_path, "r", encoding="utf-8") as f:
                 content = f.read()
+            logger.info(f"File content length: {len(content)}")
             return Response(content=content, media_type=content_type)
         else:
+            logger.warning(f"File not found: {file_path}, serving embedded content")
             # If file not found, serve embedded content based on file type
             return serve_embedded_file(file_path)
             
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error serving file {file_path}: {e}")
         # If anything fails, serve embedded content
         return serve_embedded_file(file_path)
 
