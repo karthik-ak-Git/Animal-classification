@@ -1,4 +1,7 @@
 # ==========================
-# No external dependencies needed
-# Using only Python standard library
+# Clean FastAPI Requirements
 # ==========================
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+aiofiles==23.2.1
