@@ -1,7 +1,6 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 import json
 import os
 
@@ -16,9 +15,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount static files - this is the correct way to serve frontend files
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 # Animal classes data
 ANIMAL_CLASSES = [
@@ -93,6 +89,59 @@ async def root():
         </body>
         </html>
         """)
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Serve favicon to prevent 500 errors"""
+    try:
+        # Try to serve the actual favicon
+        favicon_path = "frontend/favicon.svg"
+        if os.path.exists(favicon_path):
+            with open(favicon_path, "r", encoding="utf-8") as f:
+                svg_content = f.read()
+            return Response(content=svg_content, media_type="image/svg+xml")
+        else:
+            # Return a simple SVG favicon if file not found
+            svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="#007bff"/>
+                <text x="50" y="60" text-anchor="middle" fill="white" font-size="40">🐾</text>
+            </svg>"""
+            return Response(content=svg_content, media_type="image/svg+xml")
+    except Exception:
+        # Return empty response if anything fails
+        return Response(content="", status_code=204)
+
+@app.get("/static/{file_path:path}")
+async def static_files(file_path: str):
+    """Serve static files (CSS, JS, images) directly without mounting"""
+    try:
+        # Construct the full path
+        full_path = f"frontend/{file_path}"
+        
+        # Check if file exists
+        if os.path.exists(full_path):
+            # Determine content type based on file extension
+            content_type = "text/plain"
+            if file_path.endswith(".css"):
+                content_type = "text/css"
+            elif file_path.endswith(".js"):
+                content_type = "application/javascript"
+            elif file_path.endswith(".svg"):
+                content_type = "image/svg+xml"
+            elif file_path.endswith(".png"):
+                content_type = "image/png"
+            elif file_path.endswith(".jpg") or file_path.endswith(".jpeg"):
+                content_type = "image/jpeg"
+            
+            with open(full_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            return Response(content=content, media_type=content_type)
+        else:
+            # Return empty response for missing files
+            return Response(content="", status_code=204)
+    except Exception:
+        # Return empty response if anything fails
+        return Response(content="", status_code=204)
 
 @app.get("/health")
 async def health_check():
