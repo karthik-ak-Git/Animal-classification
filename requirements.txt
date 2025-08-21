@@ -1,8 +1,7 @@
 # ==========================
-# Vercel-Compatible Requirements (Python 3.12+)
+# Vercel-Compatible Requirements (Python 3.11+)
 # ==========================
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
-Pillow==10.1.0
 numpy==1.26.2
