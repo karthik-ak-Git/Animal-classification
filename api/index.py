@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
 import json
@@ -92,7 +92,7 @@ async def root():
 
 @app.get("/favicon.ico")
 async def favicon():
-    """Serve favicon to prevent 500 errors"""
+    """Serve favicon"""
     try:
         # Try to serve the actual favicon
         favicon_path = "frontend/favicon.svg"
@@ -113,7 +113,7 @@ async def favicon():
 
 @app.get("/static/{file_path:path}")
 async def static_files(file_path: str):
-    """Serve static files (CSS, JS, images) directly without mounting"""
+    """Serve static files (CSS, JS, images)"""
     try:
         # Construct the full path
         full_path = f"frontend/{file_path}"
@@ -150,7 +150,7 @@ async def health_check():
         "status": "healthy",
         "api_ready": True,
         "num_classes": len(ANIMAL_CLASSES),
-        "deployment": "production",
+        "deployment": "local",
         "version": "1.0.0"
     }
 
@@ -201,11 +201,6 @@ async def submit_feedback(
 ):
     """Submit feedback/correction for a prediction"""
     return {"message": "Feedback submitted successfully", "status": "success"}
-
-# Vercel handler - simple and clean
-def handler(request):
-    """Vercel serverless function handler"""
-    return app(request)
 
 # For local development
 if __name__ == "__main__":
