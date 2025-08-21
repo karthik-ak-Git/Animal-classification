@@ -1,4 +1,3 @@
-from http.server import BaseHTTPRequestHandler
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -6,7 +5,6 @@ from PIL import Image
 import io
 import json
 import os
-import base64
 
 # Initialize FastAPI app
 app = FastAPI(title="Animal Classification API", version="1.0.0")
@@ -22,12 +20,11 @@ app.add_middleware(
 
 # Global variables
 class_names = []
-transform = None
 
 @app.on_event("startup")
 async def load_model():
     """Initialize API on startup"""
-    global class_names, transform
+    global class_names
     
     try:
         # Load class names (hardcoded for Vercel compatibility)
