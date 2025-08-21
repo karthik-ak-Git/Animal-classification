@@ -1,22 +1,39 @@
 import json
 
-def handler(request):
-    """Vercel serverless function handler - absolutely bulletproof"""
+def handler(request, context):
+    """Vercel serverless function handler - handles exact Vercel request format"""
     
-    # Get request details
-    method = request.get('method', 'GET')
-    path = request.get('path', '/')
-    
-    # Set CORS headers
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-    }
-    
+    # Handle both old and new Vercel request formats
     try:
+        # Try to get path from different possible locations
+        path = None
+        method = "GET"
+        
+        # Check different possible request formats
+        if isinstance(request, dict):
+            path = request.get('path') or request.get('url') or request.get('query', {}).get('path')
+            method = request.get('method', 'GET')
+        elif hasattr(request, 'path'):
+            path = request.path
+        elif hasattr(request, 'url'):
+            path = request.url
+        else:
+            # Fallback - use default path
+            path = "/"
+        
+        # Clean up path
+        if path and path.startswith('/'):
+            path = path[1:] if path != "/" else ""
+        
+        # Set CORS headers
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        }
+        
         # Handle different endpoints
-        if path == "/" or path == "":
+        if path == "" or path == "/" or path is None:
             # Root endpoint - return HTML
             html_content = """
             <!DOCTYPE html>
@@ -65,14 +82,15 @@ def handler(request):
                 "headers": {**headers, "Content-Type": "text/html"}
             }
             
-        elif path == "/health":
+        elif path == "health":
             # Health check endpoint
             response = {
                 "status": "healthy",
                 "message": "API is working correctly",
                 "deployment": "vercel",
                 "version": "1.0.0",
-                "handler": "simple_function"
+                "handler": "simple_function",
+                "path_received": path
             }
             
             return {
@@ -81,14 +99,15 @@ def handler(request):
                 "headers": {**headers, "Content-Type": "application/json"}
             }
             
-        elif path == "/classes":
+        elif path == "classes":
             # Animal classes endpoint
             animal_classes = ["Cat", "Dog", "Bird", "Bear", "Lion", "Tiger", "Elephant", "Giraffe", "Horse", "Cow"]
             
             response = {
                 "classes": animal_classes,
                 "count": len(animal_classes),
-                "status": "success"
+                "status": "success",
+                "path_received": path
             }
             
             return {
@@ -97,13 +116,14 @@ def handler(request):
                 "headers": {**headers, "Content-Type": "application/json"}
             }
             
-        elif path == "/predict":
+        elif path == "predict":
             # Prediction endpoint
             response = {
                 "prediction": "Cat",
                 "confidence": 0.85,
                 "message": "Placeholder prediction - API is working!",
-                "status": "success"
+                "status": "success",
+                "path_received": path
             }
             
             return {
@@ -117,7 +137,9 @@ def handler(request):
             response = {
                 "error": "Endpoint not found",
                 "available_endpoints": ["/", "/health", "/classes", "/predict"],
-                "status": "error"
+                "status": "error",
+                "path_received": path,
+                "request_info": str(request)[:200]
             }
             
             return {
@@ -132,20 +154,35 @@ def handler(request):
             "error": "Internal server error",
             "message": "API encountered an error but is still responding",
             "status": "error",
-            "details": str(e)
+            "details": str(e),
+            "request_type": str(type(request)),
+            "request_content": str(request)[:200]
         }
         
         return {
             "statusCode": 500,
             "body": json.dumps(response),
-            "headers": {**headers, "Content-Type": "application/json"}
+            "headers": {"Content-Type": "application/json"}
         }
 
 # For local development
 if __name__ == "__main__":
-    # Test the handler locally
-    test_request = {"method": "GET", "path": "/"}
-    result = handler(test_request)
-    print("Local test result:")
-    print(f"Status: {result['statusCode']}")
-    print(f"Body: {result['body'][:100]}...")
+    # Test the handler locally with different request formats
+    test_requests = [
+        {"path": "/", "method": "GET"},
+        {"path": "/health", "method": "GET"},
+        {"path": "/classes", "method": "GET"},
+        {"path": "/predict", "method": "GET"},
+        {"url": "/health", "method": "GET"},
+        {"query": {"path": "/health"}, "method": "GET"}
+    ]
+    
+    print("Testing handler with different request formats:")
+    for i, test_request in enumerate(test_requests):
+        try:
+            result = handler(test_request, None)
+            print(f"Test {i+1}: {test_request['path']} -> Status: {result['statusCode']}")
+        except Exception as e:
+            print(f"Test {i+1}: {test_request['path']} -> Error: {e}")
+    
+    print("\nHandler testing completed!")
