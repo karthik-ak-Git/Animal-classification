@@ -40,8 +40,13 @@ ANIMAL_CLASSES = [
 async def root():
     """Serve the main frontend interface"""
     try:
+        # Get the current working directory and construct the correct path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
+        html_path = os.path.join(frontend_dir, "index.html")
+        
         # Read the actual frontend HTML file
-        with open("frontend/index.html", "r", encoding="utf-8") as f:
+        with open(html_path, "r", encoding="utf-8") as f:
             html_content = f.read()
         
         # Return the actual frontend content
@@ -94,8 +99,11 @@ async def root():
 async def favicon():
     """Serve favicon"""
     try:
-        # Try to serve the actual favicon
-        favicon_path = "frontend/favicon.svg"
+        # Get the current working directory and construct the correct path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
+        favicon_path = os.path.join(frontend_dir, "favicon.svg")
+        
         if os.path.exists(favicon_path):
             with open(favicon_path, "r", encoding="utf-8") as f:
                 svg_content = f.read()
@@ -115,8 +123,10 @@ async def favicon():
 async def static_files(file_path: str):
     """Serve static files (CSS, JS, images)"""
     try:
-        # Construct the full path
-        full_path = f"frontend/{file_path}"
+        # Get the current working directory and construct the correct path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
+        full_path = os.path.join(frontend_dir, file_path)
         
         # Check if file exists
         if os.path.exists(full_path):
