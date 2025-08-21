@@ -200,7 +200,7 @@ async def submit_feedback(
         raise HTTPException(status_code=500, detail=f"Failed to submit feedback: {str(e)}")
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
