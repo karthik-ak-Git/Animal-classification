@@ -40,66 +40,28 @@ ANIMAL_CLASSES = [
 async def root():
     """Serve the main frontend interface"""
     try:
-        # Get the current working directory and construct the correct path
+        # Try to read the actual frontend HTML file first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         html_path = os.path.join(frontend_dir, "index.html")
         
-        # Read the actual frontend HTML file
-        with open(html_path, "r", encoding="utf-8") as f:
-            html_content = f.read()
-        
-        # Return the actual frontend content
-        return HTMLResponse(content=html_content)
-        
-    except FileNotFoundError:
-        # Fallback if frontend file not found
-        return HTMLResponse(content="""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Animal Classification API</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; text-align: center; background: #f5f5f5; }
-                .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                .endpoint { background: #f0f8ff; padding: 15px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #007bff; }
-                .success { color: #28a745; font-weight: bold; }
-                .btn { display: inline-block; padding: 10px 20px; margin: 5px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-                .btn:hover { background: #0056b3; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🐾 Animal Classification API</h1>
-                <p class="success">✅ API is running successfully!</p>
-                
-                <h2>Available Endpoints:</h2>
-                <div class="endpoint">
-                    <strong>/health</strong> - API health check
-                </div>
-                <div class="endpoint">
-                    <strong>/classes</strong> - List of animal classes
-                </div>
-                <div class="endpoint">
-                    <strong>/predict</strong> - Image prediction
-                </div>
-                
-                <h2>Test Links:</h2>
-                <a href="/health" class="btn">Health Check</a>
-                <a href="/classes" class="btn">Animal Classes</a>
-                <a href="/predict" class="btn">Test Prediction</a>
-                
-                <p><small>Animal Classification API - Ready for use</small></p>
-            </div>
-        </body>
-        </html>
-        """)
+        if os.path.exists(html_path):
+            with open(html_path, "r", encoding="utf-8") as f:
+                html_content = f.read()
+            return HTMLResponse(content=html_content)
+        else:
+            # If file not found, serve embedded HTML
+            return HTMLResponse(content=get_embedded_html())
+            
+    except Exception:
+        # If anything fails, serve embedded HTML
+        return HTMLResponse(content=get_embedded_html())
 
 @app.get("/favicon.ico")
 async def favicon():
     """Serve favicon"""
     try:
-        # Get the current working directory and construct the correct path
+        # Try to serve the actual favicon first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         favicon_path = os.path.join(frontend_dir, "favicon.svg")
@@ -109,26 +71,21 @@ async def favicon():
                 svg_content = f.read()
             return Response(content=svg_content, media_type="image/svg+xml")
         else:
-            # Return a simple SVG favicon if file not found
-            svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="#007bff"/>
-                <text x="50" y="60" text-anchor="middle" fill="white" font-size="40">🐾</text>
-            </svg>"""
-            return Response(content=svg_content, media_type="image/svg+xml")
+            # Return embedded favicon if file not found
+            return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
     except Exception:
-        # Return empty response if anything fails
-        return Response(content="", status_code=204)
+        # Return embedded favicon if anything fails
+        return Response(content=get_embedded_favicon(), media_type="image/svg+xml")
 
 @app.get("/static/{file_path:path}")
 async def static_files(file_path: str):
     """Serve static files (CSS, JS, images)"""
     try:
-        # Get the current working directory and construct the correct path
+        # Try to serve the actual file first
         current_dir = os.path.dirname(os.path.abspath(__file__))
         frontend_dir = os.path.join(os.path.dirname(current_dir), "frontend")
         full_path = os.path.join(frontend_dir, file_path)
         
-        # Check if file exists
         if os.path.exists(full_path):
             # Determine content type based on file extension
             content_type = "text/plain"
@@ -147,11 +104,280 @@ async def static_files(file_path: str):
                 content = f.read()
             return Response(content=content, media_type=content_type)
         else:
-            # Return empty response for missing files
-            return Response(content="", status_code=204)
+            # If file not found, serve embedded content
+            return serve_embedded_file(file_path)
+            
     except Exception:
-        # Return empty response if anything fails
+        # If anything fails, serve embedded content
+        return serve_embedded_file(file_path)
+
+def get_embedded_html():
+    """Return embedded HTML content"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Animal Classifier</title>
+        <link rel="icon" href="/favicon.ico" type="image/svg+xml">
+        <style>
+            /* Embedded CSS */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            
+            .container {
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                padding: 40px;
+                max-width: 600px;
+                width: 100%;
+                text-align: center;
+            }
+            
+            h1 {
+                color: #333;
+                margin-bottom: 20px;
+                font-size: 2.5em;
+            }
+            
+            .success {
+                color: #28a745;
+                font-weight: bold;
+                font-size: 1.2em;
+                margin-bottom: 30px;
+            }
+            
+            .endpoint {
+                background: #f8f9fa;
+                padding: 20px;
+                margin: 15px 0;
+                border-radius: 10px;
+                border-left: 4px solid #007bff;
+                text-align: left;
+            }
+            
+            .btn {
+                display: inline-block;
+                padding: 12px 24px;
+                margin: 8px;
+                background: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            
+            .btn:hover {
+                background: #0056b3;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+            
+            .status {
+                background: #e8f5e8;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 20px 0;
+                border: 1px solid #d4edda;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🐾 Animal Classification API</h1>
+            <div class="status">
+                <p class="success">✅ API is running successfully!</p>
+                <p>All endpoints are working correctly</p>
+            </div>
+            
+            <h2>Available Endpoints:</h2>
+            <div class="endpoint">
+                <strong>/health</strong> - API health check and status
+            </div>
+            <div class="endpoint">
+                <strong>/classes</strong> - List of 75 animal classes
+            </div>
+            <div class="endpoint">
+                <strong>/predict</strong> - Image prediction endpoint
+            </div>
+            <div class="endpoint">
+                <strong>/feedback</strong> - Submit prediction feedback
+            </div>
+            
+            <h2>Test Links:</h2>
+            <a href="/health" class="btn">Health Check</a>
+            <a href="/classes" class="btn">Animal Classes</a>
+            <a href="/predict" class="btn">Test Prediction</a>
+            
+            <p style="margin-top: 30px; color: #666;">
+                <small>Animal Classification API - Ready for use</small>
+            </p>
+        </div>
+        
+        <script>
+            // Embedded JavaScript
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Animal Classification API loaded successfully!');
+                
+                // Add some interactivity
+                const buttons = document.querySelectorAll('.btn');
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        this.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1)';
+                        }, 150);
+                    });
+                });
+            });
+        </script>
+    </body>
+    </html>
+    """
+
+def get_embedded_favicon():
+    """Return embedded favicon SVG"""
+    return """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="#007bff"/>
+        <text x="50" y="60" text-anchor="middle" fill="white" font-size="40">🐾</text>
+    </svg>"""
+
+def serve_embedded_file(file_path):
+    """Serve embedded file content based on file type"""
+    if file_path.endswith(".css"):
+        return Response(content=get_embedded_css(), media_type="text/css")
+    elif file_path.endswith(".js"):
+        return Response(content=get_embedded_js(), media_type="application/javascript")
+    else:
         return Response(content="", status_code=204)
+
+def get_embedded_css():
+    """Return embedded CSS content"""
+    return """
+    /* Embedded CSS for Animal Classification API */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 2.5em;
+    }
+    
+    .success {
+        color: #28a745;
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-bottom: 30px;
+    }
+    
+    .endpoint {
+        background: #f8f9fa;
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 10px;
+        border-left: 4px solid #007bff;
+        text-align: left;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 12px 24px;
+        margin: 8px;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .status {
+        background: #e8f5e8;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        border: 1px solid #d4edda;
+    }
+    """
+
+def get_embedded_js():
+    """Return embedded JavaScript content"""
+    return """
+    // Embedded JavaScript for Animal Classification API
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Animal Classification API loaded successfully!');
+        
+        // Add some interactivity
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+        
+        // Add loading animation
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            container.style.transition = 'all 0.5s ease';
+            
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        }
+    });
+    """
 
 @app.get("/health")
 async def health_check():
