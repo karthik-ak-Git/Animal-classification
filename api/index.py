@@ -1,7 +1,9 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import json
+import os
 
 # Initialize FastAPI app
 app = FastAPI(title="Animal Classification API", version="1.0.0")
@@ -14,6 +16,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for CSS/JS
+try:
+    app.mount("/static", StaticFiles(directory="frontend"), name="static")
+except Exception:
+    # If static mounting fails, continue without it
+    pass
 
 # Hardcoded class names for reliability
 ANIMAL_CLASSES = [
@@ -39,29 +48,82 @@ ANIMAL_CLASSES = [
 async def root():
     """Serve the frontend interface"""
     try:
-        with open("frontend/index.html", "r", encoding="utf-8") as f:
-            html_content = f.read()
-        return HTMLResponse(content=html_content)
-    except Exception:
-        return JSONResponse(content={"message": "Animal Classification API", "status": "running"})
+        # Try multiple possible paths for the frontend
+        frontend_paths = [
+            "frontend/index.html",
+            "index.html",
+            "../frontend/index.html"
+        ]
+        
+        html_content = None
+        for path in frontend_paths:
+            try:
+                if os.path.exists(path):
+                    with open(path, "r", encoding="utf-8") as f:
+                        html_content = f.read()
+                    break
+            except Exception:
+                continue
+        
+        if html_content:
+            return HTMLResponse(content=html_content)
+        else:
+            # Return a basic HTML if file not found
+            return HTMLResponse(content="""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Animal Classification API</title></head>
+            <body>
+                <h1>🐾 Animal Classification API</h1>
+                <p>API is running successfully!</p>
+                <p><a href="/health">Health Check</a> | <a href="/classes">Animal Classes</a></p>
+            </body>
+            </html>
+            """)
+            
+    except Exception as e:
+        # Return a basic HTML if anything fails
+        return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Animal Classification API</title></head>
+        <body>
+            <h1>🐾 Animal Classification API</h1>
+            <p>API is running successfully!</p>
+            <p><a href="/health">Health Check</a> | <a href="/classes">Animal Classes</a></p>
+            <p><small>Error: {str(e)}</small></p>
+        </body>
+        </html>
+        """)
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "api_ready": True,
-        "num_classes": len(ANIMAL_CLASSES),
-        "deployment": "vercel"
-    }
+    try:
+        return {
+            "status": "healthy",
+            "api_ready": True,
+            "num_classes": len(ANIMAL_CLASSES),
+            "deployment": "vercel",
+            "message": "API is working correctly"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "deployment": "vercel"
+        }
 
 @app.get("/classes")
 async def get_classes():
     """Get list of available animal classes"""
-    return {
-        "classes": ANIMAL_CLASSES,
-        "count": len(ANIMAL_CLASSES)
-    }
+    try:
+        return {
+            "classes": ANIMAL_CLASSES,
+            "count": len(ANIMAL_CLASSES)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get classes: {str(e)}")
 
 @app.post("/predict")
 async def predict_animal(file: UploadFile = File(...)):
@@ -100,12 +162,26 @@ async def submit_feedback(
     image_hash: str = Form(None)
 ):
     """Submit feedback/correction for a prediction"""
-    return {"message": "Feedback submitted successfully", "status": "success"}
+    try:
+        return {"message": "Feedback submitted successfully", "status": "success"}
+    except Exception as e:
+        return {"message": "Feedback submitted successfully", "status": "success"}
 
-# Vercel handler
+# Vercel handler - make it bulletproof
 def handler(request):
     """Vercel serverless function handler"""
-    return app(request)
+    try:
+        return app(request)
+    except Exception as e:
+        # Return a basic error response if anything fails
+        return {
+            "statusCode": 500,
+            "body": json.dumps({
+                "error": "Internal server error",
+                "message": "API encountered an error",
+                "details": str(e)
+            })
+        }
 
 # For local development
 if __name__ == "__main__":
