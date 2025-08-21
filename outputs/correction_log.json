@@ -166,5 +166,23 @@
     "predicted": "Panda",
     "actual": "Red Panda",
     "timestamp": "2025-07-23 12:33:41.243725"
+  },
+  {
+    "original_prediction": "Asiatic Lion",
+    "correction": "Lion",
+    "image_hash": null,
+    "timestamp": "2025-08-21T13:48:12.836845"
+  },
+  {
+    "original_prediction": "Asiatic Lion",
+    "correction": "Lion",
+    "image_hash": null,
+    "timestamp": "2025-08-21T13:48:28.851645"
+  },
+  {
+    "original_prediction": "Asiatic Lion",
+    "correction": "Lion",
+    "image_hash": null,
+    "timestamp": "2025-08-21T14:00:45.129413"
   }
 ]

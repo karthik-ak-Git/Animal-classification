@@ -1,139 +1,228 @@
-import os
-import io
-import sys
-import shutil
-import torch
-from PIL import Image
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+import torch
+import torch.nn.functional as F
 from torchvision import transforms
-
-from utilss.species_fetcher import fetch_species_names
-from utilss.dataset_manager import get_class_names_from_dataset
+from PIL import Image
+import io
+import json
+import os
 from model import AnimalCNN
-from utilss.logger import log_correction
+from data.dataloader import AnimalDataset
 
-# Initialize FastAPI
-app = FastAPI()
+# Initialize FastAPI app
+app = FastAPI(title="Animal Classification API", version="1.0.0")
 
-# Allow frontend access via CORS
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Serve HTML UI
-app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
+# Mount static files
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
+# Global variables for model and class names
+model = None
+class_names = []
+device = None
+transform = None
 
-@app.get("/", response_class=HTMLResponse)
-async def serve_index():
+@app.on_event("startup")
+async def load_model():
+    """Load the trained model and setup on startup"""
+    global model, class_names, device, transform
+    
+    print("🚀 Loading animal classification model...")
+    
+    # Setup device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"🖥️ Using device: {device}")
+    
+    # Setup transforms
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                           std=[0.229, 0.224, 0.225])
+    ])
+    
+    # Load class names from dataset
+    try:
+        dataset = AnimalDataset("dataset", transform)
+        class_names = list(dataset.class_map.keys())
+        num_classes = len(class_names)
+        print(f"📦 Loaded {len(class_names)} animal classes")
+    except Exception as e:
+        print(f"⚠️ Warning: Could not load dataset classes: {e}")
+        # Fallback to generic classes if dataset loading fails
+        class_names = [f"Class_{i}" for i in range(75)]  # Assuming 75 classes
+        num_classes = 75
+    
+    # Load the trained model
+    try:
+        model = AnimalCNN(num_classes=num_classes).to(device)
+        checkpoint = torch.load("outputs/best_model.pth", map_location=device)
+        # The checkpoint contains the state dict directly, not wrapped in 'model_state_dict'
+        model.load_state_dict(checkpoint)
+        model.eval()
+        print("✅ Model loaded successfully!")
+    except Exception as e:
+        print(f"❌ Error loading model: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load model")
+
+@app.get("/")
+async def root():
+    """Serve the frontend interface"""
     with open("frontend/index.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+        html_content = f.read()
+    return HTMLResponse(content=html_content)
 
-# 🔍 Setup device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# 🚀 Initialize class names once at startup
-print("🔍 Scanning dataset folder for class names...")
-class_names = get_class_names_from_dataset()
-num_classes = len(class_names)
-print(f"✅ Found {num_classes} animal classes")
-
-if num_classes == 0:
-    print("❌ No classes found in dataset folder")
-    print("➡️ Please ensure the dataset folder contains subfolders for each animal class")
-    class_names = ["Unknown"]
-    num_classes = 1
-
-# 🧠 Load model
-model = AnimalCNN(num_classes=num_classes).to(device)
-model_path = "outputs/best_model.pth"
-
-try:
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.eval()
-    print(f"✅ Model loaded with {num_classes} classes")
-except RuntimeError as e:
-    print(f"❌ Error loading model: {e}")
-    print("➡️ Please retrain using: python train.py with correct class count.")
-    model = None  # Avoid using an invalid model
-
-# 🖼️ Image transform
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
-])
-
-
-@app.post("/predict")
-async def predict(file: UploadFile = File(...)):
-    if model is None:
-        return {"error": "Model not available. Please retrain first."}
-
-    contents = await file.read()
-    image = Image.open(io.BytesIO(contents)).convert("RGB")
-    input_tensor = transform(image).unsqueeze(0).to(device)
-
-    with torch.no_grad():
-        output = model(input_tensor)
-        pred_idx = output.argmax(dim=1).item()
-
-    predicted_class = class_names[pred_idx]
-    confidence = torch.softmax(output, dim=1)[0][pred_idx].item()
-
-    def get_base_class(label: str):
-        label = label.replace("_", " ")
-        for keyword in ["Bear", "Cat", "Dog", "Deer", "Bird", "Cow", "Horse", "Dolphin", "Elephant", "Giraffe", "Kangaroo", "Lion", "Panda", "Polar", "Sloth", "Sun", "Tiger", "Zebra"]:
-            if keyword in label:
-                return keyword
-        return label
-
-    base_class = get_base_class(predicted_class)
-    breed_suggestions = fetch_species_names(predicted_class, top_n=3)
-
-    print(
-        f"Predicted: {predicted_class} | Base: {base_class} | Confidence: {round(confidence, 4)}")
-
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
     return {
-        "prediction": predicted_class,
-        "base_class": base_class,
-        "confidence": round(confidence, 4),
-        "breeds": breed_suggestions
+        "status": "healthy",
+        "model_loaded": model is not None,
+        "num_classes": len(class_names) if class_names else 0,
+        "device": str(device) if device else "unknown"
     }
 
+@app.get("/classes")
+async def get_classes():
+    """Get list of available animal classes"""
+    return {
+        "classes": class_names,
+        "count": len(class_names)
+    }
+
+@app.post("/predict")
+async def predict_animal(file: UploadFile = File(...)):
+    """Predict animal class from uploaded image"""
+    if model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+    
+    # Validate file type
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    try:
+        # Read and process image
+        image_data = await file.read()
+        image = Image.open(io.BytesIO(image_data)).convert('RGB')
+        
+        # Apply transforms
+        image_tensor = transform(image).unsqueeze(0).to(device)
+        
+        # Get prediction
+        with torch.no_grad():
+            outputs = model(image_tensor)
+            probabilities = F.softmax(outputs, dim=1)
+            predicted_class_idx = torch.argmax(probabilities, dim=1).item()
+            confidence = probabilities[0][predicted_class_idx].item()
+        
+        # Get top 3 predictions
+        top3_probs, top3_indices = torch.topk(probabilities[0], 3)
+        
+        # Format response
+        prediction = class_names[predicted_class_idx]
+        
+        # Determine base animal category (simplified logic)
+        base_category = get_base_category(prediction)
+        
+        # Get breed suggestions
+        breeds = [class_names[idx.item()] for idx in top3_indices]
+        
+        return {
+            "prediction": prediction,
+            "base_class": base_category,
+            "confidence": round(confidence, 4),
+            "breeds": breeds,
+            "top_predictions": [
+                {
+                    "class": class_names[idx.item()],
+                    "confidence": round(prob.item(), 4)
+                }
+                for prob, idx in zip(top3_probs, top3_indices)
+            ]
+        }
+        
+    except Exception as e:
+        print(f"❌ Prediction error: {e}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+def get_base_category(animal_name: str) -> str:
+    """Determine the base animal category from the specific breed/type"""
+    animal_name_lower = animal_name.lower()
+    
+    # Define base categories
+    base_categories = {
+        "dog": ["dog", "labrador", "german shepherd", "golden retriever", "pug"],
+        "cat": ["cat", "persian", "siamese", "maine coon", "bengal"],
+        "bear": ["bear", "grizzly", "polar", "black", "asiatic"],
+        "elephant": ["elephant", "african", "asian"],
+        "lion": ["lion", "african", "asiatic"],
+        "tiger": ["tiger", "bengal", "siberian"],
+        "horse": ["horse", "arabian", "thoroughbred", "clydesdale"],
+        "cow": ["cow", "angus", "jersey", "domestic"],
+        "bird": ["bird", "eagle", "parrot", "owl", "penguin"],
+        "deer": ["deer", "red", "mule"],
+        "giraffe": ["giraffe", "masai", "reticulated"],
+        "zebra": ["zebra", "plains", "mountain"],
+        "kangaroo": ["kangaroo", "red", "eastern grey"],
+        "dolphin": ["dolphin", "bottlenose", "spinner"],
+        "panda": ["panda", "giant", "red"]
+    }
+    
+    for category, keywords in base_categories.items():
+        if any(keyword in animal_name_lower for keyword in keywords):
+            return category.title()
+    
+    # Default to the first word if no match found
+    return animal_name.split()[0].title()
 
 @app.post("/feedback")
-async def feedback(
-    file: UploadFile = File(...),
-    predicted: str = Form(...),
-    actual: str = Form(...)
+async def submit_feedback(
+    correction: str = Form(...),
+    original_prediction: str = Form(...),
+    image_hash: str = Form(None)
 ):
-    contents = await file.read()
-    filename = file.filename
-    save_path = os.path.join("dataset", actual)
-    os.makedirs(save_path, exist_ok=True)
-
-    with open(os.path.join(save_path, filename), "wb") as f:
-        f.write(contents)
-
-    log_correction(filename, predicted, actual)
-
+    """Submit feedback/correction for a prediction"""
     try:
-        import subprocess
-        subprocess.run([sys.executable, "feedback_trainer.py"], check=True)
-        return {"message": "✅ Feedback received and model updated."}
+        # Load existing feedback
+        feedback_file = "outputs/correction_log.json"
+        feedback_data = []
+        
+        if os.path.exists(feedback_file):
+            with open(feedback_file, 'r') as f:
+                feedback_data = json.load(f)
+        
+        # Add new feedback
+        from datetime import datetime
+        feedback_entry = {
+            "original_prediction": original_prediction,
+            "correction": correction,
+            "image_hash": image_hash,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        feedback_data.append(feedback_entry)
+        
+        # Save updated feedback
+        with open(feedback_file, 'w') as f:
+            json.dump(feedback_data, f, indent=2)
+        
+        return {"message": "Feedback submitted successfully", "status": "success"}
+        
     except Exception as e:
-        return {"message": f"⚠️ Feedback saved, but model update failed: {e}"}
+        print(f"❌ Feedback error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to submit feedback: {str(e)}")
 
-
-@app.get("/classes")
-async def get_class_names():
-    """Return the pre-loaded class names (no scanning required)"""
-    return {"classes": class_names}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

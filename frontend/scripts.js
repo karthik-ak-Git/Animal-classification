@@ -308,9 +308,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const formData = new FormData();
-        formData.append('file', imageFile);
-        formData.append('predicted', window.currentPrediction || 'Unknown');
-        formData.append('actual', corrected);
+        formData.append('correction', corrected);
+        formData.append('original_prediction', window.currentPrediction || 'Unknown');
+        // Note: We're not sending image_hash for now, but the backend will handle it
 
         submitCorrectionButton.disabled = true;
         submitCorrectionButton.innerHTML = '<span class="loading me-2"></span>Submitting...';
@@ -363,4 +363,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize
     loadClassOptions();
+    
+    // Test API connection on load
+    console.log('🚀 Animal Classifier initialized');
+    console.log('📡 Testing API connections...');
+    
+    // Test health endpoint
+    fetch('/health')
+        .then(res => res.json())
+        .then(data => {
+            console.log('✅ Health check:', data);
+            if (data.model_loaded) {
+                console.log(`🎯 Model loaded with ${data.num_classes} classes`);
+            }
+        })
+        .catch(err => console.error('❌ Health check failed:', err));
 });
