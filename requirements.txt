@@ -1,4 +1,4 @@
 # ==========================
-# Minimal Requirements for Vercel
+# No external dependencies needed
+# Using only Python standard library
 # ==========================
-fastapi==0.104.1
