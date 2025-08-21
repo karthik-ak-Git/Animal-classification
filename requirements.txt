@@ -1,5 +1,2 @@
-# ==========================
-# Vercel-Compatible Requirements
-# ==========================
 fastapi==0.104.1
 python-multipart==0.0.6
