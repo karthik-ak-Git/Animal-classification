@@ -1,4 +1,4 @@
-# 🐾 Animal Classification 🦁🐦🐻
+fi# 🐾 Animal Classification 🦁🐦🐻
 
 A professional deep learning web app to classify 15 animal species from images, featuring a PyTorch ResNet18 model, FastAPI backend, Bootstrap 5 frontend, feedback-driven retraining, Grad-CAM visualizations, and optional OpenCLIP validation.
 

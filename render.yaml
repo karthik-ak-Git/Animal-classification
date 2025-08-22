@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: animal-classification-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python start.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: PORT
+        value: 8000
+      - key: SKLEARN_SKIP_NETWORK_TESTS
+        value: 1
+      - key: SKLEARN_SKIP_PYTEST_COLLECT
+        value: 1
+      - key: OMP_NUM_THREADS
+        value: 1
+      - key: MKL_NUM_THREADS
+        value: 1
+      - key: NUMEXPR_NUM_THREADS
+        value: 1

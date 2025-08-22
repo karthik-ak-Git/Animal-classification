@@ -33,15 +33,15 @@ class_names = []
 class_map = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Image transformation
+# Image transformation - optimized for memory
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize((224, 224), antialias=True),  # Use antialias for better quality
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 def load_model():
-    """Load the trained model and class information"""
+    """Load the trained model and class information with memory optimization"""
     global model, class_names, class_map
     
     try:
@@ -57,13 +57,20 @@ def load_model():
         # Load trained weights if available
         model_path = "outputs/best_model.pth"
         if os.path.exists(model_path):
-            model.load_state_dict(torch.load(model_path, map_location=device))
+            # Load with map_location to avoid GPU memory issues
+            checkpoint = torch.load(model_path, map_location=device)
+            model.load_state_dict(checkpoint)
+            del checkpoint  # Free memory
             print(f"✅ Model loaded from {model_path}")
         else:
             print("⚠️  No trained model found. Using untrained model.")
         
         model.to(device)
         model.eval()
+        
+        # Enable memory efficient inference
+        if hasattr(model, 'half'):
+            model.half()  # Use half precision if available
         
         print(f"✅ Model loaded successfully with {num_classes} classes")
         print(f"🖥️  Using device: {device}")
@@ -111,7 +118,7 @@ async def health_check():
 
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
-    """Predict animal class from uploaded image"""
+    """Predict animal class from uploaded image with memory optimization"""
     if not model:
         raise HTTPException(status_code=500, detail="Model not loaded")
     
@@ -120,14 +127,21 @@ async def predict_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File must be an image")
     
     try:
-        # Read and process image
+        # Read and process image with memory optimization
         image_data = await file.read()
-        image = Image.open(io.BytesIO(image_data)).convert('RGB')
         
-        # Apply transformation
-        image_tensor = transform(image).unsqueeze(0).to(device)
+        # Open image and convert to RGB immediately
+        with Image.open(io.BytesIO(image_data)) as img:
+            # Convert to RGB and resize in one step to save memory
+            img = img.convert('RGB')
+            
+            # Apply transformation
+            image_tensor = transform(img).unsqueeze(0).to(device)
         
-        # Get prediction
+        # Clear image data from memory
+        del image_data
+        
+        # Get prediction with memory optimization
         with torch.no_grad():
             outputs = model(image_tensor)
             probabilities = F.softmax(outputs, dim=1)
@@ -140,6 +154,9 @@ async def predict_image(file: UploadFile = File(...)):
         top3_probs, top3_indices = torch.topk(probabilities, 3, dim=1)
         top3_classes = [class_names[idx] for idx in top3_indices[0]]
         top3_scores = top3_probs[0].tolist()
+        
+        # Clear tensors from memory
+        del image_tensor, outputs, probabilities, top3_probs, top3_indices
         
         # Determine base class (simplified logic)
         base_class = predicted_class.split('_')[0] if '_' in predicted_class else predicted_class
@@ -204,4 +221,10 @@ app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    
+    # Get port from environment variable (for Render deployment)
+    port = int(os.environ.get("PORT", 8000))
+    
+    # Bind to 0.0.0.0 to allow external connections
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -21,7 +21,7 @@ seaborn>=0.12.0,<1.0.0
 # FastAPI + Backend
 # ==========================
 fastapi>=0.100.0,<1.0.0
-uvicorn>=0.20.0,<1.0.0
+uvicorn[standard]>=0.20.0,<1.0.0  # Standard extras for better performance
 python-multipart>=0.0.6,<1.0.0
 aiofiles>=23.0.0,<24.0.0
 
@@ -39,3 +39,9 @@ open-clip-torch>=2.20.0,<3.0.0
 # Api key integration for species
 # ==========================
 python-dotenv>=1.0.0,<2.0.0
+
+# ==========================
+# Memory Optimization
+# ==========================
+psutil>=5.9.0,<6.0.0  # Memory monitoring
+memory-profiler>=0.61.0,<1.0.0  # Memory profiling
