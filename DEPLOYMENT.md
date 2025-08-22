@@ -1,165 +1,152 @@
-# 🚀 Render Deployment Guide
+# Animal Classification API - Deployment Guide
 
-This guide will help you deploy your Animal Classification project to Render.com successfully.
+## 🚀 Deployment on Render
 
-## ✅ Pre-Deployment Checklist
+This guide covers deploying the Animal Classification API on Render with memory optimization.
 
-- [x] All required files exist and are properly configured
-- [x] Health endpoint `/health` is implemented
-- [x] Startup script `start.py` is optimized for Render
-- [x] `render.yaml` configuration is set up
-- [x] Error handling and timeouts are implemented
-- [x] Memory optimization is in place
+## 📋 Prerequisites
 
-## 🔧 Deployment Steps
+- Render account
+- Git repository with your code
+- Trained model file (`outputs/best_model.pth`)
 
-### 1. Commit and Push Changes
+## 🔧 Memory Optimization Changes
+
+The API has been optimized to prevent memory overflow during deployment:
+
+### Key Changes Made:
+
+1. **Removed Dataset Loading at Startup**: The app no longer loads the entire dataset during startup
+2. **Directory Scanning Only**: Only scans folder names to get class information
+3. **Lazy Loading**: Images are only loaded when needed for predictions
+4. **Reduced Dependencies**: Removed heavy packages not needed for deployment
+5. **Memory Monitoring**: Added memory usage tracking in health endpoint
+
+### Files Modified:
+
+- `main_api.py` - Optimized model loading
+- `requirements.txt` - Reduced dependencies
+- `start.py` - Memory management improvements
+- `render.yaml` - Memory optimization settings
+
+## 🚀 Deployment Steps
+
+### 1. Test Locally First
+
 ```bash
-git add .
-git commit -m "Optimize for Render deployment"
-git push origin main
+# Test memory optimization
+python test_memory.py
+
+# Test the API locally
+python start.py
 ```
 
-### 2. Connect to Render
-1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository
-4. Render will automatically detect the `render.yaml` configuration
+### 2. Deploy to Render
 
-### 3. Deployment Configuration
-The `render.yaml` file configures:
-- **Service Type:** Web service
-- **Environment:** Python 3.11
-- **Plan:** Free tier
-- **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `python start.py`
-- **Health Check:** `/health` endpoint
-- **Memory Optimization:** Single worker, thread limits
+1. **Connect Repository**: Link your Git repository to Render
+2. **Create Web Service**: Use the `render.yaml` configuration
+3. **Environment**: Python 3.11
+4. **Build Command**: `pip install -r requirements.txt`
+5. **Start Command**: `python start.py`
 
-### 4. Monitor Deployment
-- Watch the build logs for any errors
-- The build should complete in 2-5 minutes
-- Monitor the deployment logs for startup issues
+### 3. Monitor Deployment
 
-## 🐛 Troubleshooting Common Issues
+- Check the deployment logs for memory usage
+- Use the `/health` endpoint to monitor memory consumption
+- Watch for any memory-related errors
 
-### Build Timeout
-**Problem:** Build takes too long and times out
-**Solution:** 
-- Check if all dependencies are properly specified in `requirements.txt`
-- Verify Python version compatibility (3.11 recommended)
-- Monitor build logs for specific errors
-
-### Deployment Timeout
-**Problem:** Service starts but times out during deployment
-**Solution:**
-- Check the `/health` endpoint is responding
-- Monitor startup logs for model loading issues
-- The app will continue without model if loading times out
+## 🔍 Troubleshooting
 
 ### Memory Issues
-**Problem:** Service runs out of memory
-**Solution:**
-- Single worker configuration (`workers=1`)
-- Thread limits set in environment variables
-- Model loads asynchronously with timeout
 
-### Model Loading Issues
-**Problem:** Model fails to load
-**Solution:**
-- 60-second timeout for model loading
-- App continues operation without model
-- Check if `outputs/best_model.pth` exists
+If you still encounter memory problems:
 
-## 📊 Health Check Endpoint
+1. **Check Health Endpoint**: `/health` shows memory usage
+2. **Reduce Model Size**: Consider using a smaller model
+3. **Increase Render Plan**: Upgrade from free to paid plan for more memory
+4. **Check Dependencies**: Ensure no unnecessary packages are installed
 
-The `/health` endpoint returns:
+### Common Errors
+
+```
+==> Out of memory (used over 512Mi)
+```
+
+**Solutions:**
+- Verify `test_memory.py` passes locally
+- Check that all optimization changes are deployed
+- Monitor memory usage via health endpoint
+- Consider reducing model complexity
+
+### Port Binding Issues
+
+```
+==> No open ports detected, continuing to scan...
+```
+
+**Solutions:**
+- Ensure `start.py` binds to `0.0.0.0`
+- Check that `PORT` environment variable is set
+- Verify uvicorn configuration in `start.py`
+
+## 📊 Memory Monitoring
+
+The `/health` endpoint now provides memory information:
+
 ```json
 {
   "status": "healthy",
-  "model_loaded": true/false,
-  "classes_available": 15,
-  "device": "cpu"
+  "model_loaded": true,
+  "classes_available": 75,
+  "device": "cpu",
+  "memory_usage_mb": 245.67,
+  "memory_available_mb": 1024.33,
+  "memory_percent": 19.35
 }
 ```
 
-**Expected Behavior:**
-- `status`: Always "healthy" if service is running
-- `model_loaded`: `true` if model loaded successfully, `false` if still loading or failed
-- `classes_available`: Number of animal classes available
-- `device`: Device being used (usually "cpu" on Render)
+## 🧪 Testing Deployment
 
-## 🔍 Monitoring and Debugging
-
-### View Logs
+### 1. Health Check
 ```bash
-# In Render dashboard
-# Go to your service → Logs tab
+curl https://your-app.onrender.com/health
 ```
 
-### Common Log Messages
-- `🚀 Starting Animal Classification API on port 8000`
-- `🔄 Loading model and dataset...`
-- `📊 Found 15 animal classes`
-- `✅ Model loaded successfully`
-- `✅ Startup completed successfully`
-
-### Error Messages
-- `⚠️ Model loading timed out, continuing with basic setup`
-- `❌ Error loading model: [error details]`
-- `⚠️ No trained model found. Using untrained model.`
-
-## 🚀 Post-Deployment
-
-### 1. Test Health Endpoint
+### 2. Class Information
 ```bash
-curl https://your-app-name.onrender.com/health
+curl https://your-app.onrender.com/classes
 ```
 
-### 2. Test Main Application
-- Visit your app URL
-- Upload an image for classification
-- Check if predictions work
+### 3. Prediction Test
+```bash
+curl -X POST "https://your-app.onrender.com/predict" \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@test_image.jpg"
+```
 
-### 3. Monitor Performance
-- Watch memory usage in Render dashboard
-- Monitor response times
-- Check for any errors in logs
+## 🔄 Continuous Deployment
 
-## 💡 Optimization Tips
+- Enable auto-deploy in Render
+- Monitor deployment logs for memory issues
+- Use health checks to verify deployment success
 
-### For Free Tier
-- Single worker configuration
-- Memory-efficient model loading
-- Timeout handling for long operations
-- Graceful degradation without model
+## 📈 Performance Tips
 
-### For Paid Tiers
-- Increase worker count if needed
-- Adjust memory limits
-- Enable auto-scaling
-- Use persistent storage for models
+1. **Model Optimization**: Use model quantization if possible
+2. **Image Processing**: Optimize image transformations
+3. **Caching**: Consider adding response caching for repeated requests
+4. **Monitoring**: Regularly check memory usage patterns
 
-## 🆘 Getting Help
+## 🆘 Support
 
-If you encounter issues:
+If you continue to experience issues:
 
-1. **Check Render Documentation:** [render.com/docs](https://render.com/docs)
-2. **Review Logs:** Always check service logs first
-3. **Test Locally:** Use `test_deployment.py` to verify configuration
-4. **Community Support:** Render has an active community forum
-
-## 🎯 Success Indicators
-
-Your deployment is successful when:
-- ✅ Build completes without errors
-- ✅ Service starts and shows "Live" status
-- ✅ `/health` endpoint returns 200 OK
-- ✅ Main application loads without errors
-- ✅ Image classification works (if model loads)
+1. Check the deployment logs thoroughly
+2. Verify all optimization changes are applied
+3. Test locally with `test_memory.py`
+4. Consider upgrading Render plan for more resources
 
 ---
 
-**Good luck with your deployment! 🚀**
-
-If you need help, check the logs first and ensure all configuration files are properly set up.
+**Note**: The free Render plan has limited memory (512MB). For production use, consider upgrading to a paid plan with more resources.

@@ -26,5 +26,12 @@ services:
         value: 1
       - key: TORCH_NUM_THREADS
         value: 1
+      - key: TORCH_CUDNN_V8_API_ENABLED
+        value: 0
+      - key: TORCH_USE_CUDA_DSA
+        value: 0
+      - key: PYTORCH_CUDA_ALLOC_CONF
+        value: max_split_size_mb:128
     healthCheckPath: /health
+    healthCheckTimeout: 300
     autoDeploy: true

@@ -11,7 +11,6 @@ import json
 import os
 from pathlib import Path
 from model import AnimalCNN
-from data.dataloader import AnimalDataset
 import numpy as np
 from datetime import datetime
 
@@ -47,15 +46,21 @@ def load_model():
     try:
         print("🔄 Loading model and dataset...")
         
-        # Load dataset to get class information
-        dataset = AnimalDataset("dataset", transform=None)
-        class_names = list(dataset.class_map.keys())
-        class_map = dataset.class_map
-        
-        print(f"📊 Found {len(class_names)} animal classes")
+        # Get class names by scanning directory structure only (no image loading)
+        dataset_path = "dataset"
+        if os.path.exists(dataset_path):
+            # Just get folder names as class names - don't load images
+            class_names = [d for d in sorted(os.listdir(dataset_path)) 
+                          if os.path.isdir(os.path.join(dataset_path, d))]
+            class_map = {cls_name: idx for idx, cls_name in enumerate(class_names)}
+            print(f"📊 Found {len(class_names)} animal classes")
+        else:
+            print("⚠️  Dataset directory not found")
+            class_names = []
+            class_map = {}
         
         # Initialize model
-        num_classes = len(class_names)
+        num_classes = len(class_names) if class_names else 10  # Default fallback
         model = AnimalCNN(num_classes=num_classes)
         
         # Load trained weights if available
@@ -79,9 +84,6 @@ def load_model():
         
         print(f"✅ Model loaded successfully with {num_classes} classes")
         print(f"🖥️  Using device: {device}")
-        
-        # Clear any unnecessary variables
-        del dataset
         
     except Exception as e:
         print(f"❌ Error loading model: {e}")
@@ -113,12 +115,26 @@ async def startup_event():
 @app.get("/health")
 async def health_check():
     """Health check endpoint for Render"""
-    return {
-        "status": "healthy",
-        "model_loaded": model is not None,
-        "classes_available": len(class_names) if class_names else 0,
-        "device": str(device)
-    }
+    try:
+        import psutil
+        memory_info = psutil.virtual_memory()
+        return {
+            "status": "healthy",
+            "model_loaded": model is not None,
+            "classes_available": len(class_names) if class_names else 0,
+            "device": str(device),
+            "memory_usage_mb": round(memory_info.used / 1024 / 1024, 2),
+            "memory_available_mb": round(memory_info.available / 1024 / 1024, 2),
+            "memory_percent": round(memory_info.percent, 2)
+        }
+    except ImportError:
+        return {
+            "status": "healthy",
+            "model_loaded": model is not None,
+            "classes_available": len(class_names) if class_names else 0,
+            "device": str(device),
+            "memory_monitoring": "unavailable"
+        }
 
 @app.get("/")
 async def root():
