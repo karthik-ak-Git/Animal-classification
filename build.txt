@@ -1,0 +1,16 @@
+# Build dependencies for Render deployment
+# This file helps resolve compilation issues with scikit-learn
+
+# Install build dependencies first
+gcc
+g++
+make
+cython
+
+# Environment variables to help with compilation
+export SKLEARN_SKIP_NETWORK_TESTS=1
+export SKLEARN_SKIP_PYTEST_COLLECT=1
+export SKLEARN_BUILD_PARALLEL=1
+
+# Alternative: Use pre-compiled wheels when possible
+pip install --only-binary=all scikit-learn
