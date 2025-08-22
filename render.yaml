@@ -20,3 +20,11 @@ services:
         value: 1
       - key: NUMEXPR_NUM_THREADS
         value: 1
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PYTHONDONTWRITEBYTECODE
+        value: 1
+      - key: TORCH_NUM_THREADS
+        value: 1
+    healthCheckPath: /health
+    autoDeploy: true

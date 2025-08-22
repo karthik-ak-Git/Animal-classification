@@ -71,6 +71,43 @@ A professional deep learning web app to classify 15 animal species from images, 
 
 ---
 
+## 🚀 Render Deployment
+
+This project is optimized for deployment on Render.com. The deployment includes:
+
+### ✅ Optimized for Render
+- **Health Check Endpoint:** `/health` for Render monitoring
+- **Memory Optimization:** Efficient model loading and memory management
+- **Timeout Handling:** Graceful startup with 60-second model loading timeout
+- **Error Handling:** Continues operation even if model loading fails
+- **Render Configuration:** `render.yaml` with optimized settings
+
+### 🔧 Deployment Steps
+1. **Push to GitHub:** Commit and push your changes
+2. **Connect to Render:** Link your GitHub repository
+3. **Auto-deploy:** Render will use `render.yaml` configuration
+4. **Monitor:** Check deployment logs and health endpoint
+
+### 🐛 Troubleshooting Deployment Timeouts
+If deployment times out:
+- **Check logs:** Monitor the deployment logs in Render dashboard
+- **Health endpoint:** Test `/health` endpoint once deployed
+- **Model loading:** The app will continue without model if loading times out
+- **Memory limits:** Free tier has memory constraints - model loads asynchronously
+
+### 📊 Health Check
+The `/health` endpoint returns:
+```json
+{
+  "status": "healthy",
+  "model_loaded": true/false,
+  "classes_available": 15,
+  "device": "cpu"
+}
+```
+
+---
+
 ## 🖥️ Running the Backend
 
 Start the FastAPI server with Uvicorn:

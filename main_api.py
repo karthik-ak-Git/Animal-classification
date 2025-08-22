@@ -45,10 +45,14 @@ def load_model():
     global model, class_names, class_map
     
     try:
+        print("🔄 Loading model and dataset...")
+        
         # Load dataset to get class information
         dataset = AnimalDataset("dataset", transform=None)
         class_names = list(dataset.class_map.keys())
         class_map = dataset.class_map
+        
+        print(f"📊 Found {len(class_names)} animal classes")
         
         # Initialize model
         num_classes = len(class_names)
@@ -57,11 +61,12 @@ def load_model():
         # Load trained weights if available
         model_path = "outputs/best_model.pth"
         if os.path.exists(model_path):
+            print(f"📥 Loading model weights from {model_path}")
             # Load with map_location to avoid GPU memory issues
             checkpoint = torch.load(model_path, map_location=device)
             model.load_state_dict(checkpoint)
-            del checkpoint  # Free memory
-            print(f"✅ Model loaded from {model_path}")
+            del checkpoint  # Free memory immediately
+            print(f"✅ Model weights loaded successfully")
         else:
             print("⚠️  No trained model found. Using untrained model.")
         
@@ -69,20 +74,51 @@ def load_model():
         model.eval()
         
         # Enable memory efficient inference
-        if hasattr(model, 'half'):
-            model.half()  # Use half precision if available
+        if hasattr(model, 'half') and device.type == 'cuda':
+            model.half()  # Use half precision only on GPU
         
         print(f"✅ Model loaded successfully with {num_classes} classes")
         print(f"🖥️  Using device: {device}")
         
+        # Clear any unnecessary variables
+        del dataset
+        
     except Exception as e:
         print(f"❌ Error loading model: {e}")
-        raise e
+        # Don't raise the error, just log it
+        # The app will continue without the model
+        model = None
+        class_names = []
+        class_map = {}
 
 @app.on_event("startup")
 async def startup_event():
-    """Load model on startup"""
-    load_model()
+    """Load model on startup with timeout handling"""
+    import asyncio
+    
+    try:
+        # Set a timeout for model loading
+        await asyncio.wait_for(
+            asyncio.to_thread(load_model), 
+            timeout=60.0  # 60 second timeout
+        )
+        print("✅ Startup completed successfully")
+    except asyncio.TimeoutError:
+        print("⚠️  Model loading timed out, continuing with basic setup")
+        # Continue without model - endpoints will return appropriate errors
+    except Exception as e:
+        print(f"❌ Startup error: {e}")
+        # Continue without model - endpoints will return appropriate errors
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Render"""
+    return {
+        "status": "healthy",
+        "model_loaded": model is not None,
+        "classes_available": len(class_names) if class_names else 0,
+        "device": str(device)
+    }
 
 @app.get("/")
 async def root():
@@ -106,29 +142,27 @@ async def get_classes():
         "classes": class_names
     }
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "model_loaded": model is not None,
-        "num_classes": len(class_names) if class_names else 0,
-        "device": str(device)
-    }
-
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
-    """Predict animal class from uploaded image with memory optimization"""
-    if not model:
-        raise HTTPException(status_code=500, detail="Model not loaded")
-    
-    # Validate file type
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
-    
+    """Predict animal class from uploaded image"""
     try:
-        # Read and process image with memory optimization
+        # Check if model is loaded
+        if model is None:
+            raise HTTPException(
+                status_code=503, 
+                detail="Model is still loading. Please try again in a few moments."
+            )
+        
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Read image data
         image_data = await file.read()
+        
+        # Validate file size (max 10MB)
+        if len(image_data) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Image file too large (max 10MB)")
         
         # Open image and convert to RGB immediately
         with Image.open(io.BytesIO(image_data)) as img:
@@ -169,6 +203,9 @@ async def predict_image(file: UploadFile = File(...)):
             "scores": [round(score, 4) for score in top3_scores]
         }
         
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
