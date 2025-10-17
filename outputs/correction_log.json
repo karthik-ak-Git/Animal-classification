@@ -184,5 +184,44 @@
     "correction": "Lion",
     "image_hash": null,
     "timestamp": "2025-08-21T14:00:45.129413"
+  },
+  {
+    "predicted_class": "African Elephant",
+    "correct_class": "African Elephant",
+    "confidence": 0.9836,
+    "comments": "yes the prediction is correct",
+    "timestamp": "2025-10-17T11:31:50.604Z"
+  },
+  {
+    "predicted_class": "African Elephant",
+    "correct_class": "African Elephant",
+    "confidence": 0.9836,
+    "comments": "",
+    "timestamp": "2025-10-17T11:38:14.083Z",
+    "image_path": null
+  },
+  {
+    "predicted_class": "African Elephant",
+    "correct_class": "African Elephant",
+    "confidence": 0.9499,
+    "comments": "",
+    "timestamp": "2025-10-17T11:38:49.531Z",
+    "image_path": "outputs/feedback_data\\African Elephant\\20251017_170849_African Elephant_to_African Elephant.jpg"
+  },
+  {
+    "predicted_class": "African Elephant",
+    "correct_class": "African Elephant",
+    "confidence": 0.9836,
+    "comments": "",
+    "timestamp": "2025-10-17T11:44:55.004Z",
+    "image_path": "outputs/feedback_data\\African Elephant\\20251017_171455_African Elephant_to_African Elephant.jpg"
+  },
+  {
+    "predicted_class": "African Elephant",
+    "correct_class": "African Elephant",
+    "confidence": 0.9836,
+    "comments": "",
+    "timestamp": "2025-10-17T11:44:58.579Z",
+    "image_path": "outputs/feedback_data\\African Elephant\\20251017_171506_African Elephant_to_African Elephant.jpg"
   }
 ]

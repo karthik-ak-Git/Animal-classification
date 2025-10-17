@@ -4,33 +4,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animal Classifier</title>
-    <link rel="icon" type="image/svg+xml" href="frontend/favicon.svg">
+    <title>Animal Classification AI - Advanced Image Recognition</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="frontend/styles.css" rel="stylesheet">
 </head>
 
 <body>
+    <!-- Background Elements -->
+    <div class="background-elements">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
     <div class="app-container">
-        <!-- Header -->
+        <!-- Modern Header -->
         <header class="app-header">
             <div class="container">
+                <nav class="navbar">
+                    <div class="navbar-brand">
+                        <div class="logo-wrapper">
+                            <i class="bi bi-stars logo-icon"></i>
+                            <span class="logo-text">Animal<span class="logo-accent">AI</span></span>
+                        </div>
+                        <div class="badge-wrapper">
+                            <span class="badge bg-gradient-primary">
+                                <i class="bi bi-cpu-fill me-1"></i>Deep Learning
+                            </span>
+                        </div>
+                    </div>
+                    <div class="navbar-stats">
+                        <div class="stat-item">
+                            <i class="bi bi-collection"></i>
+                            <span class="stat-value" id="total-classes">75</span>
+                            <span class="stat-label">Classes</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                            <span class="stat-value">GPU</span>
+                            <span class="stat-label">Accelerated</span>
+                        </div>
+                    </div>
+                </nav>
                 <div class="header-content">
-                    <h1 class="app-title">
-                        <span class="title-icon">🐾</span>
-                        Animal Classifier
+                    <h1 class="hero-title">
+                        <span class="gradient-text">Advanced Animal Recognition</span>
                     </h1>
-                    <p class="app-subtitle">AI-powered animal and breed identification</p>
+                    <p class="hero-subtitle">
+                        <i class="bi bi-robot me-2"></i>
+                        Powered by ResNet18 Deep Neural Network with 75+ Animal Species Detection
+                    </p>
                 </div>
             </div>
         </header>
@@ -40,16 +77,24 @@
             <div class="container">
                 <!-- Upload Section -->
                 <section class="upload-section">
-                    <div class="upload-card">
-                        <div class="upload-area" id="upload-area">
-                            <div class="upload-content">
-                                <div class="upload-icon">
-                                    <i class="bi bi-cloud-upload"></i>
+                    <div class="upload-card-modern">
+                        <div class="upload-area-modern" id="upload-area">
+                            <div class="upload-content-modern">
+                                <div class="upload-icon-modern">
+                                    <div class="icon-bg">
+                                        <i class="bi bi-cloud-arrow-up"></i>
+                                    </div>
                                 </div>
-                                <h3 class="upload-title">Upload an image</h3>
-                                <p class="upload-description">Drag and drop or click to select</p>
-                                <input type="file" id="image-upload" class="form-control d-none" accept="image/*">
-                                <button class="btn btn-primary btn-upload"
+                                <h3 class="upload-title-modern">Drag & Drop Your Image</h3>
+                                <p class="upload-description-modern">
+                                    or <span class="text-primary fw-semibold">browse</span> to choose a file
+                                </p>
+                                <div class="supported-formats">
+                                    <i class="bi bi-file-earmark-image"></i>
+                                    <span>JPG, PNG, JPEG up to 10MB</span>
+                                </div>
+                                <input type="file" id="image-upload" class="d-none" accept="image/*">
+                                <button class="btn-upload-modern"
                                     onclick="document.getElementById('image-upload').click()">
                                     <i class="bi bi-upload me-2"></i>Choose Image
                                 </button>
@@ -57,76 +102,87 @@
                         </div>
 
                         <!-- Image Preview -->
-                        <div id="image-preview-container" class="image-preview-container d-none">
-                            <div class="preview-wrapper">
-                                <img id="image-preview" class="image-preview" alt="Preview">
-                                <button class="btn btn-remove" onclick="removeImage()" title="Remove image">
+                        <div id="image-preview-container" class="image-preview-container-modern d-none">
+                            <div class="preview-wrapper-modern">
+                                <img id="image-preview" class="image-preview-modern" alt="Preview">
+                                <button class="btn-remove-modern" onclick="removeImage()" title="Remove image">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
+                                <div class="preview-overlay">
+                                    <div class="preview-filename" id="preview-filename"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Analyze Button -->
-                    <div class="analyze-section">
-                        <button id="predict-button" class="btn btn-primary btn-analyze" disabled>
-                            <i class="bi bi-search me-2"></i>Analyze Image
+                    <div class="analyze-section-modern">
+                        <button id="predict-button" class="btn-analyze-modern" disabled>
+                            <span class="btn-icon-wrapper">
+                                <i class="bi bi-magic"></i>
+                            </span>
+                            <span class="btn-text">Analyze with AI</span>
+                            <span class="btn-shine"></span>
                         </button>
+                        <div class="processing-indicator d-none" id="processing-indicator">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <span class="ms-2">Processing with neural network...</span>
+                        </div>
                     </div>
                 </section>
 
                 <!-- Prediction Result -->
-                <section id="result-container" class="result-section d-none">
-                    <div class="prediction-card">
-                        <div class="prediction-header">
-                            <div class="ai-indicator">
-                                <i class="bi bi-robot"></i>
-                                <span>AI Analysis</span>
+                <section id="result-container" class="result-section-modern d-none">
+                    <div class="prediction-card-modern">
+                        <div class="prediction-header-modern">
+                            <div class="ai-indicator-modern">
+                                <div class="ai-pulse"></div>
+                                <i class="bi bi-cpu-fill"></i>
+                                <span>Neural Network Analysis</span>
+                            </div>
+                            <div class="confidence-badge" id="confidence-badge">
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span id="confidence-percentage">0%</span>
                             </div>
                         </div>
 
-                        <div class="prediction-content">
-                            <!-- Main Class Display -->
-                            <div id="main-class-display" class="main-class-display">
-                                <div class="class-emoji" id="class-emoji"></div>
-                                <div class="class-text">
-                                    <div class="main-class-label" id="main-class-label"></div>
+                        <div class="prediction-content-modern">
+                            <!-- Main Prediction -->
+                            <div class="main-prediction-modern">
+                                <div class="prediction-icon" id="prediction-icon">🐾</div>
+                                <div class="prediction-details">
+                                    <div class="prediction-label">Detected Species</div>
+                                    <h2 class="prediction-name" id="prediction-name">--</h2>
+                                    <div class="prediction-confidence">
+                                        <div class="confidence-bar-bg">
+                                            <div class="confidence-bar-fill" id="confidence-bar" style="width: 0%">
+                                            </div>
+                                        </div>
+                                        <span class="confidence-text" id="confidence-text">Confidence: 0%</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Breed Display -->
-                            <div id="breed-display" class="breed-display d-none">
-                                <div class="breed-arrow">→</div>
-                                <div class="breed-text">
-                                    <div class="breed-name" id="breed-name"></div>
-                                    <div class="confidence-text" id="confidence-text"></div>
+                            <!-- Top Predictions -->
+                            <div class="top-predictions-modern">
+                                <h3 class="section-title">
+                                    <i class="bi bi-list-stars me-2"></i>Top Predictions
+                                </h3>
+                                <div class="predictions-list" id="predictions-list">
+                                    <!-- Dynamic predictions will be inserted here -->
                                 </div>
                             </div>
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="prediction-actions">
-                            <button id="copy-breed-btn" class="btn btn-outline-primary btn-sm d-none">
-                                <i class="bi bi-clipboard me-1"></i>Copy Breed
+                        <div class="prediction-actions-modern">
+                            <button class="btn-action-modern btn-secondary-modern" onclick="resetApp()">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>
+                                Analyze Another
                             </button>
-                            <button id="show-feedback-btn" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-chat-dots me-1"></i>Report Incorrect
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Feedback Section -->
-                    <div id="feedback-card" class="feedback-card collapse">
-                        <div class="feedback-header">
-                            <h6>Help improve the model</h6>
-                            <p>What animal is this actually?</p>
-                        </div>
-                        <div class="feedback-form">
-                            <select id="correction-dropdown" class="form-select">
-                                <option value="">Select correct class...</option>
-                            </select>
-                            <button id="submit-correction" class="btn btn-success">
-                                <i class="bi bi-check me-1"></i>Submit Correction
+                            <button id="show-feedback-btn" class="btn-action-modern btn-feedback-modern">
+                                <i class="bi bi-flag me-2"></i>
+                                Report Incorrect
                             </button>
                         </div>
                     </div>
@@ -134,16 +190,62 @@
             </div>
         </main>
 
-        <!-- Toast Container -->
-        <div id="toast-container" class="toast-container"></div>
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-info">
+                        <p class="footer-text">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Powered by ResNet18 Deep Learning Architecture
+                        </p>
+                        <p class="footer-subtext">
+                            Trained on 75+ animal species with state-of-the-art accuracy
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
 
-    <!-- jQuery + Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="frontend/scripts.js"></script>
+</body>
+
+</html>
+</div>
+
+<!-- Feedback Section -->
+<div id="feedback-card" class="feedback-card collapse">
+    <div class="feedback-header">
+        <h6>Help improve the model</h6>
+        <p>What animal is this actually?</p>
+    </div>
+    <div class="feedback-form">
+        <select id="correction-dropdown" class="form-select">
+            <option value="">Select correct class...</option>
+        </select>
+        <button id="submit-correction" class="btn btn-success">
+            <i class="bi bi-check me-1"></i>Submit Correction
+        </button>
+    </div>
+</div>
+</section>
+</div>
+</main>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+</div>
+
+<!-- jQuery + Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JS -->
+<script src="frontend/scripts.js"></script>
 </body>
 
 </html>
