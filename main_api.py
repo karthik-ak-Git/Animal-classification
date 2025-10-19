@@ -143,13 +143,13 @@ class AnimalDataset(torch.utils.data.Dataset):
 
 async def run_incremental_training():
     """
-    Run smart incremental training that:
-    1. Only updates weights for classes that received feedback
-    2. Uses class-weighted loss to focus on corrected samples
-    3. Preserves pretrained knowledge with minimal updates
+    Run reinforcement learning training that:
+    1. Uses only the latest feedback data (old data already cleared)
+    2. Updates model immediately on every feedback
+    3. Focuses on the most recent corrections
     """
     try:
-        print("🚀 Starting smart incremental training...")
+        print("🧠 Starting reinforcement learning training...")
 
         # Import training modules
         from torch.utils.data import DataLoader, ConcatDataset, WeightedRandomSampler
@@ -162,13 +162,13 @@ async def run_incremental_training():
             print("⚠️  No feedback data found for training")
             return
 
-        # Create dataset from feedback images
+        # Create dataset from feedback images (only latest feedback)
         feedback_dataset = AnimalDataset(feedback_dir, transform=transform)
         if len(feedback_dataset) == 0:
             print("⚠️  Feedback dataset is empty")
             return
 
-        print(f"📊 Found {len(feedback_dataset)} feedback samples")
+        print(f"📊 Found {len(feedback_dataset)} latest feedback samples")
 
         # Get classes that need updates
         feedback_classes = set(feedback_dataset.class_map.keys())
@@ -214,7 +214,7 @@ async def run_incremental_training():
         train_loader = DataLoader(combined_dataset, batch_size=8, shuffle=True)
 
         print(
-            f"📚 Training set: {len(feedback_dataset)} feedback + {len(replay_samples)} replay = {len(combined_dataset)} total")
+            f"📚 Training set: {len(feedback_dataset)} latest feedback + {len(replay_samples)} replay = {len(combined_dataset)} total")
 
         # Freeze all layers except the final classification layer
         global model
@@ -280,20 +280,10 @@ async def run_incremental_training():
         # Set model back to evaluation mode
         model.eval()
 
-        # Create backup of feedback data after training
-        import shutil
-        backup_dir = "outputs/feedback_data_trained"
-        os.makedirs(backup_dir, exist_ok=True)
+        # For reinforcement learning, don't backup - just clear for next feedback
+        print("� Reinforcement training completed - ready for next feedback")
 
-        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_path = os.path.join(backup_dir, f"backup_{timestamp_str}")
-        shutil.move(feedback_dir, backup_path)
-        print(f"📦 Feedback data backed up to {backup_path}")
-
-        # Recreate empty feedback directory for new samples
-        os.makedirs(feedback_dir, exist_ok=True)
-
-        print("✅ Incremental training completed successfully!")
+        print("✅ Reinforcement training completed successfully!")
 
     except Exception as e:
         print(f"❌ Error during incremental training: {e}")
@@ -344,6 +334,43 @@ async def health_check():
             "device": str(device),
             "memory_monitoring": "unavailable"
         }
+
+
+@app.get("/api/health")
+async def api_health_check():
+    """Alternative health check endpoint for compatibility"""
+    return await health_check()
+
+
+@app.get("/api/classes")
+async def api_get_classes():
+    """Alternative classes endpoint for compatibility"""
+    return await get_classes()
+
+
+@app.post("/api/predict")
+async def api_predict_image(file: UploadFile = File(...)):
+    """Alternative predict endpoint for compatibility"""
+    return await predict_image(file)
+
+
+@app.post("/api/feedback")
+async def api_feedback_image(
+    file: UploadFile = File(...),
+    predicted_class: str = Form(...),
+    correct_class: str = Form(...),
+    confidence: float = Form(...),
+    comments: str = Form("")
+):
+    """Alternative feedback endpoint for compatibility"""
+    # Call the main feedback function directly
+    return await submit_feedback({
+        "predicted_class": predicted_class,
+        "correct_class": correct_class,
+        "confidence": confidence,
+        "comments": comments,
+        "file": file
+    })
 
 
 @app.get("/")
@@ -454,8 +481,11 @@ async def submit_feedback(feedback: dict):
         timestamp = feedback.get("timestamp", datetime.now().isoformat())
         image_data = feedback.get("image_data", None)  # Base64 image data
 
-        # Create feedback directory structure
+        # Clear old feedback data BEFORE saving new feedback
         feedback_dir = "outputs/feedback_data"
+        if os.path.exists(feedback_dir):
+            import shutil
+            shutil.rmtree(feedback_dir)  # Remove all old feedback data
         os.makedirs(feedback_dir, exist_ok=True)
 
         # Save the image if provided
@@ -515,29 +545,27 @@ async def submit_feedback(feedback: dict):
 
         feedback_id = len(existing_feedback)
 
-        # Trigger incremental training if we have enough feedback samples
-        retrain_threshold = 5  # Retrain after every 5 feedback samples
-        should_retrain = (feedback_id % retrain_threshold == 0)
-
-        response_data = {
-            "status": "success",
-            "message": "Feedback submitted successfully",
-            "feedback_id": feedback_id,
-            "image_saved": image_path is not None,
-            "retraining_triggered": should_retrain
-        }
-
-        if should_retrain:
-            print(
-                f"🔄 Triggering incremental training (threshold: {retrain_threshold})")
-            # Import and run incremental training in background
-            try:
-                import asyncio
-                asyncio.create_task(run_incremental_training())
-                response_data["message"] += " - Model retraining initiated in background"
-            except Exception as train_error:
-                print(f"⚠️  Failed to trigger training: {train_error}")
-                response_data["retraining_triggered"] = False
+        # Always trigger incremental training for reinforcement learning
+        print("🔄 Triggering reinforcement training (every feedback)")
+        try:
+            import asyncio
+            asyncio.create_task(run_incremental_training())
+            response_data = {
+                "status": "success",
+                "message": "Feedback submitted - Model retraining initiated",
+                "feedback_id": feedback_id,
+                "image_saved": image_path is not None,
+                "retraining_triggered": True
+            }
+        except Exception as train_error:
+            print(f"⚠️  Failed to trigger training: {train_error}")
+            response_data = {
+                "status": "success",
+                "message": "Feedback submitted successfully",
+                "feedback_id": feedback_id,
+                "image_saved": image_path is not None,
+                "retraining_triggered": False
+            }
 
         return response_data
 
