@@ -237,7 +237,7 @@ async def run_incremental_training():
             f"📚 Training set: {len(feedback_dataset)} latest feedback + {len(replay_samples)} replay = {len(combined_dataset)} total")
 
         # Freeze all layers except the final classification layer
-        global model
+        # Note: model is accessed from global scope (no assignment needed)
 
         # Freeze all parameters first
         for param in model.parameters():
