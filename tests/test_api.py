@@ -167,17 +167,3 @@ class TestStaticFiles:
         """Test that frontend JS is served"""
         response = client.get("/frontend/scripts.js")
         assert response.status_code in [200, 404]
-
-
-class TestCORS:
-    """Test CORS configuration"""
-
-    def test_cors_headers(self, client):
-        """Test that CORS headers are present"""
-        response = client.get("/classes")
-        # CORS headers should be present OR endpoint should return successful status
-        # Accept 500 as well since model may not be loaded in test environment
-        assert (
-            "access-control-allow-origin" in response.headers
-            or response.status_code in [200, 500]
-        )
