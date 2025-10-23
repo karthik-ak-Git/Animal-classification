@@ -10,8 +10,7 @@ import sys
 import os
 
 # Add parent directory to path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 @pytest.fixture
@@ -23,9 +22,9 @@ def client():
 @pytest.fixture
 def sample_image():
     """Create a sample image for testing"""
-    img = Image.new('RGB', (224, 224), color='red')
+    img = Image.new("RGB", (224, 224), color="red")
     img_byte_arr = BytesIO()
-    img.save(img_byte_arr, format='JPEG')
+    img.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -33,11 +32,11 @@ def sample_image():
 @pytest.fixture
 def sample_image_base64():
     """Create a base64 encoded sample image"""
-    img = Image.new('RGB', (224, 224), color='blue')
+    img = Image.new("RGB", (224, 224), color="blue")
     img_byte_arr = BytesIO()
-    img.save(img_byte_arr, format='JPEG')
+    img.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
-    encoded = base64.b64encode(img_byte_arr.read()).decode('utf-8')
+    encoded = base64.b64encode(img_byte_arr.read()).decode("utf-8")
     return f"data:image/jpeg;base64,{encoded}"
 
 
@@ -114,7 +113,7 @@ class TestFeedbackEndpoint:
             "confidence": 0.85,
             "comments": "This is clearly a cat",
             "timestamp": "2025-01-20T10:00:00",
-            "image_data": sample_image_base64
+            "image_data": sample_image_base64,
         }
 
         response = client.post("/feedback", json=feedback_data)
@@ -129,7 +128,7 @@ class TestFeedbackEndpoint:
             "predicted_class": "Dog",
             "correct_class": "Cat",
             "confidence": 0.85,
-            "comments": "Test feedback"
+            "comments": "Test feedback",
         }
 
         response = client.post("/feedback", json=feedback_data)
@@ -171,4 +170,7 @@ class TestCORS:
         """Test that CORS headers are present"""
         response = client.get("/classes")
         # Check for CORS headers
-        assert "access-control-allow-origin" in response.headers or response.status_code == 200
+        assert (
+            "access-control-allow-origin" in response.headers
+            or response.status_code == 200
+        )

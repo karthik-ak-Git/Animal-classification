@@ -17,17 +17,15 @@ class AnimalDataset(Dataset):
             folder = os.path.join(root_dir, cls_name)
             print(f"[Info] Scanning folder: {folder}")
             for file in os.listdir(folder):
-                if file.lower().endswith(('png', 'jpg', 'jpeg')):
+                if file.lower().endswith(("png", "jpg", "jpeg")):
                     img_path = os.path.join(folder, file)
                     try:
                         # Try to fully decode the image to ensure it's valid
                         with Image.open(img_path) as img:
                             img.convert("RGB")
-                        self.samples.append(
-                            (img_path, self.class_map[cls_name]))
+                        self.samples.append((img_path, self.class_map[cls_name]))
                     except (UnidentifiedImageError, OSError, SyntaxError):
-                        print(
-                            f"[Warning] Skipping corrupted image: {img_path}")
+                        print(f"[Warning] Skipping corrupted image: {img_path}")
 
     def __len__(self):
         return len(self.samples)

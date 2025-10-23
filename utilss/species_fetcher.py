@@ -3,11 +3,19 @@ import requests
 
 # utilss/species_fetcher.py
 
+
 def fetch_species_names(predicted_class, top_n=3):
     predicted_class = predicted_class.lower().replace("_", " ")
 
     breed_map = {
-        "bear": ["Grizzly Bear", "Sun Bear", "Sloth Bear", "Polar Bear", "Asiatic Black Bear", "American Black Bear"],
+        "bear": [
+            "Grizzly Bear",
+            "Sun Bear",
+            "Sloth Bear",
+            "Polar Bear",
+            "Asiatic Black Bear",
+            "American Black Bear",
+        ],
         "cat": ["Persian Cat", "Siamese Cat", "Maine Coon", "Bengal Cat"],
         "dog": ["Golden Retriever", "Labrador", "German Shepherd", "Pug"],
         "elephant": ["African Elephant", "Asian Elephant"],
@@ -21,7 +29,7 @@ def fetch_species_names(predicted_class, top_n=3):
         "lion": ["African Lion", "Asiatic Lion"],
         "panda": ["Giant Panda", "Red Panda"],
         "tiger": ["Bengal Tiger", "Siberian Tiger"],
-        "zebra": ["Mountain Zebra", "Plains Zebra"]
+        "zebra": ["Mountain Zebra", "Plains Zebra"],
     }
 
     for key in breed_map:

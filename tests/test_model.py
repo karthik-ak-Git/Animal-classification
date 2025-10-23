@@ -5,8 +5,8 @@ import torch
 import torch.nn as nn
 import sys
 import os
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 class TestAnimalCNN:
@@ -20,8 +20,8 @@ class TestAnimalCNN:
     def test_model_initialization(self, model):
         """Test that model initializes correctly"""
         assert isinstance(model, nn.Module)
-        assert hasattr(model, 'base_model')
-        assert hasattr(model.base_model, 'fc')
+        assert hasattr(model, "base_model")
+        assert hasattr(model.base_model, "fc")
 
     def test_model_output_shape(self, model):
         """Test that model outputs correct shape"""
@@ -42,7 +42,7 @@ class TestAnimalCNN:
         # Check that layer4 has gradients
         layer4_has_grad = False
         for name, param in model.base_model.named_parameters():
-            if 'layer4' in name and param.grad is not None:
+            if "layer4" in name and param.grad is not None:
                 layer4_has_grad = True
                 break
 
@@ -64,11 +64,11 @@ class TestAnimalCNN:
 
     def test_model_device_compatibility(self, model):
         """Test that model works on CPU"""
-        device = torch.device('cpu')
+        device = torch.device("cpu")
         model = model.to(device)
         dummy_input = torch.randn(1, 3, 224, 224).to(device)
         output = model(dummy_input)
-        assert output.device.type == 'cpu'
+        assert output.device.type == "cpu"
 
     def test_model_eval_mode(self, model):
         """Test that model can switch between train and eval modes"""

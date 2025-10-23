@@ -5,8 +5,7 @@ from PIL import Image
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 class TestImageTransforms:
@@ -16,12 +15,11 @@ class TestImageTransforms:
         """Test that images are resized correctly"""
         from torchvision import transforms
 
-        transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor()
-        ])
+        transform = transforms.Compose(
+            [transforms.Resize((224, 224)), transforms.ToTensor()]
+        )
 
-        img = Image.new('RGB', (512, 512), color='red')
+        img = Image.new("RGB", (512, 512), color="red")
         transformed = transform(img)
 
         assert transformed.shape == (3, 224, 224)
@@ -30,13 +28,16 @@ class TestImageTransforms:
         """Test image normalization"""
         from torchvision import transforms
 
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
-        ])
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
-        img = Image.new('RGB', (224, 224), color='red')
+        img = Image.new("RGB", (224, 224), color="red")
         transformed = transform(img)
 
         # Check that values are normalized (should be around mean/std range)
@@ -51,6 +52,7 @@ class TestDataLoader:
         """Test that dataloader can be imported"""
         try:
             from data.dataloader import AnimalDataset
+
             assert AnimalDataset is not None
         except ImportError:
             pytest.skip("Dataloader module not available")

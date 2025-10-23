@@ -3,7 +3,17 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 
 
-def train(model, train_loader, val_loader, criterion, optimizer, scheduler, device, num_epochs=50, save_path="outputs/best_model.pth"):
+def train(
+    model,
+    train_loader,
+    val_loader,
+    criterion,
+    optimizer,
+    scheduler,
+    device,
+    num_epochs=50,
+    save_path="outputs/best_model.pth",
+):
     best_val_loss = float("inf")
     patience = 5
     epochs_no_improve = 0
@@ -60,12 +70,15 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
         else:
             epochs_no_improve += 1
 
-        print(f"\033[96m📘 Epoch {epoch:02d} | 🧮 Train Loss: {avg_train_loss:.4f} | 🎯 Train Acc: {train_acc:.4f} || 🧪 Val Loss: {avg_val_loss:.4f} | ✅ Val Acc: {val_acc:.4f}\033[0m")
+        print(
+            f"\033[96m📘 Epoch {epoch:02d} | 🧮 Train Loss: {avg_train_loss:.4f} | 🎯 Train Acc: {train_acc:.4f} || 🧪 Val Loss: {avg_val_loss:.4f} | ✅ Val Acc: {val_acc:.4f}\033[0m"
+        )
 
         # Early stopping
         if epochs_no_improve >= patience:
             print(
-                f"\n⛔ Early stopping triggered after {epoch} epochs (no val improvement in {patience} rounds).\n")
+                f"\n⛔ Early stopping triggered after {epoch} epochs (no val improvement in {patience} rounds).\n"
+            )
             break
 
     writer.close()

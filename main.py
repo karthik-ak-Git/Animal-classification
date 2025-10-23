@@ -13,15 +13,16 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"\n🖥️  Using device: {device}\n")
 
 # 🧪 Transform with augmentation and normalization
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(15),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
-])
+transform = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
 
 # 📦 Load dataset
 dataset = AnimalDataset("dataset", transform)
@@ -32,8 +33,7 @@ print(f"📦 Loaded {len(dataset)} images across {len(class_names)} classes.")
 train_size = int(0.7 * len(dataset))
 val_size = int(0.15 * len(dataset))
 test_size = len(dataset) - train_size - val_size
-train_set, val_set, test_set = random_split(
-    dataset, [train_size, val_size, test_size])
+train_set, val_set, test_set = random_split(dataset, [train_size, val_size, test_size])
 
 # 📤 DataLoaders
 train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
@@ -65,7 +65,7 @@ weights = weights.to(device)
 model = AnimalCNN(num_classes=num_classes).to(device)
 loss_fn = torch.nn.CrossEntropyLoss(weight=weights)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=3)
 
 # 🚀 Train
 print("\n🚀 Starting training...\n")

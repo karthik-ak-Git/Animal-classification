@@ -34,17 +34,23 @@ def evaluate(model, loader, classes):
 
     # 📋 Classification Report
     print("\n📋 Classification Report:")
-    print(classification_report(y_true, y_pred,
-                                labels=used_labels,
-                                target_names=used_class_names))
+    print(
+        classification_report(
+            y_true, y_pred, labels=used_labels, target_names=used_class_names
+        )
+    )
 
     # 🧩 Confusion Matrix
     cm = confusion_matrix(y_true, y_pred, labels=used_labels)
     plt.figure(figsize=(12, 10))
-    sns.heatmap(cm, annot=True, fmt='d',
-                xticklabels=used_class_names,
-                yticklabels=used_class_names,
-                cmap="Blues")
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        xticklabels=used_class_names,
+        yticklabels=used_class_names,
+        cmap="Blues",
+    )
     plt.title("Confusion Matrix")
     plt.xlabel("Predicted")
     plt.ylabel("Actual")

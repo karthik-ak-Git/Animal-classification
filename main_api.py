@@ -23,7 +23,7 @@ app = FastAPI(
     version="2.0.0",
     description="Professional AI-powered animal species classification with feedback loop",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # Add security middleware
@@ -56,12 +56,14 @@ class_map = {}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Image transformation - optimized for memory
-transform = transforms.Compose([
-    # Use antialias for better quality
-    transforms.Resize((224, 224), antialias=True),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+transform = transforms.Compose(
+    [
+        # Use antialias for better quality
+        transforms.Resize((224, 224), antialias=True),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
 
 
 def load_model():
@@ -75,10 +77,12 @@ def load_model():
         dataset_path = "dataset"
         if os.path.exists(dataset_path):
             # Just get folder names as class names - don't load images
-            class_names = [d for d in sorted(os.listdir(dataset_path))
-                           if os.path.isdir(os.path.join(dataset_path, d))]
-            class_map = {cls_name: idx for idx,
-                         cls_name in enumerate(class_names)}
+            class_names = [
+                d
+                for d in sorted(os.listdir(dataset_path))
+                if os.path.isdir(os.path.join(dataset_path, d))
+            ]
+            class_map = {cls_name: idx for idx, cls_name in enumerate(class_names)}
             print(f"📊 Found {len(class_names)} animal classes")
         else:
             print("⚠️  Dataset directory not found")
@@ -134,17 +138,19 @@ class AnimalDataset(torch.utils.data.Dataset):
             return
 
         # Get all class directories
-        classes = [d for d in sorted(os.listdir(root_dir))
-                   if os.path.isdir(os.path.join(root_dir, d))]
+        classes = [
+            d
+            for d in sorted(os.listdir(root_dir))
+            if os.path.isdir(os.path.join(root_dir, d))
+        ]
 
-        self.class_map = {cls_name: idx for idx,
-                          cls_name in enumerate(classes)}
+        self.class_map = {cls_name: idx for idx, cls_name in enumerate(classes)}
 
         # Load all image paths
         for class_name in classes:
             class_dir = os.path.join(root_dir, class_name)
             for img_name in os.listdir(class_dir):
-                if img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                if img_name.lower().endswith((".png", ".jpg", ".jpeg")):
                     img_path = os.path.join(class_dir, img_name)
                     self.samples.append((img_path, self.class_map[class_name]))
 
@@ -153,7 +159,7 @@ class AnimalDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_path, label = self.samples[idx]
-        image = Image.open(img_path).convert('RGB')
+        image = Image.open(img_path).convert("RGB")
 
         if self.transform:
             image = self.transform(image)
@@ -192,8 +198,7 @@ async def run_incremental_training():
 
         # Get classes that need updates
         feedback_classes = set(feedback_dataset.class_map.keys())
-        print(
-            f"🎯 Classes requiring updates: {', '.join(sorted(feedback_classes))}")
+        print(f"🎯 Classes requiring updates: {', '.join(sorted(feedback_classes))}")
 
         # Load original dataset for replay (prevent catastrophic forgetting)
         original_dataset = AnimalDataset("dataset", transform=transform)
@@ -207,34 +212,41 @@ async def run_incremental_training():
 
         for idx, (_, label) in enumerate(original_dataset.samples):
             class_name = list(original_dataset.class_map.keys())[
-                list(original_dataset.class_map.values()).index(label)]
+                list(original_dataset.class_map.values()).index(label)
+            ]
             if class_name in feedback_classes:
                 feedback_class_indices.append(idx)
             else:
                 other_class_indices.append(idx)
 
         # Sample more from feedback classes (70%), less from others (30%)
-        feedback_replay = min(int(replay_size * 0.7),
-                              len(feedback_class_indices))
+        feedback_replay = min(int(replay_size * 0.7), len(feedback_class_indices))
         other_replay = replay_size - feedback_replay
 
         replay_indices = []
         if feedback_class_indices:
-            replay_indices.extend(random.sample(feedback_class_indices, min(
-                feedback_replay, len(feedback_class_indices))))
+            replay_indices.extend(
+                random.sample(
+                    feedback_class_indices,
+                    min(feedback_replay, len(feedback_class_indices)),
+                )
+            )
         if other_class_indices:
-            replay_indices.extend(random.sample(
-                other_class_indices, min(other_replay, len(other_class_indices))))
+            replay_indices.extend(
+                random.sample(
+                    other_class_indices, min(other_replay, len(other_class_indices))
+                )
+            )
 
-        replay_samples = torch.utils.data.Subset(
-            original_dataset, replay_indices)
+        replay_samples = torch.utils.data.Subset(original_dataset, replay_indices)
 
         # Combine feedback data with replay samples
         combined_dataset = ConcatDataset([feedback_dataset, replay_samples])
         train_loader = DataLoader(combined_dataset, batch_size=8, shuffle=True)
 
         print(
-            f"📚 Training set: {len(feedback_dataset)} latest feedback + {len(replay_samples)} replay = {len(combined_dataset)} total")
+            f"📚 Training set: {len(feedback_dataset)} latest feedback + {len(replay_samples)} replay = {len(combined_dataset)} total"
+        )
 
         # Freeze all layers except the final classification layer
         # Note: model is accessed from global scope (no assignment needed)
@@ -244,12 +256,12 @@ async def run_incremental_training():
             param.requires_grad = False
 
         # Unfreeze only the final layer (fc or classifier)
-        if hasattr(model, 'base_model') and hasattr(model.base_model, 'fc'):
+        if hasattr(model, "base_model") and hasattr(model.base_model, "fc"):
             # For AnimalCNN with base_model.fc structure
             for param in model.base_model.fc.parameters():
                 param.requires_grad = True
             print("🔓 Unfroze final classification layer (base_model.fc)")
-        elif hasattr(model, 'fc'):
+        elif hasattr(model, "fc"):
             # For models with direct fc
             for param in model.fc.parameters():
                 param.requires_grad = True
@@ -261,8 +273,7 @@ async def run_incremental_training():
         criterion = nn.CrossEntropyLoss()
 
         # Only optimize parameters that require gradients
-        trainable_params = filter(
-            lambda p: p.requires_grad, model.parameters())
+        trainable_params = filter(lambda p: p.requires_grad, model.parameters())
         # Slightly higher LR for last layer only
         optimizer = optim.Adam(trainable_params, lr=1e-4)
 
@@ -290,7 +301,8 @@ async def run_incremental_training():
             avg_loss = total_loss / total
             accuracy = 100.0 * correct / total
             print(
-                f"📘 Epoch {epoch+1}/{num_epochs} | Loss: {avg_loss:.4f} | Accuracy: {accuracy:.2f}%")
+                f"📘 Epoch {epoch+1}/{num_epochs} | Loss: {avg_loss:.4f} | Accuracy: {accuracy:.2f}%"
+            )
 
         # Save updated model
         model_path = "outputs/best_model.pth"
@@ -308,6 +320,7 @@ async def run_incremental_training():
     except Exception as e:
         print(f"❌ Error during incremental training: {e}")
         import traceback
+
         traceback.print_exc()
 
 
@@ -319,8 +332,7 @@ async def startup_event():
     try:
         # Set a timeout for model loading
         await asyncio.wait_for(
-            asyncio.to_thread(load_model),
-            timeout=60.0  # 60 second timeout
+            asyncio.to_thread(load_model), timeout=60.0  # 60 second timeout
         )
         print("✅ Startup completed successfully")
     except asyncio.TimeoutError:
@@ -336,6 +348,7 @@ async def health_check():
     """Health check endpoint for Render"""
     try:
         import psutil
+
         memory_info = psutil.virtual_memory()
         return {
             "status": "healthy",
@@ -344,7 +357,7 @@ async def health_check():
             "device": str(device),
             "memory_usage_mb": round(memory_info.used / 1024 / 1024, 2),
             "memory_available_mb": round(memory_info.available / 1024 / 1024, 2),
-            "memory_percent": round(memory_info.percent, 2)
+            "memory_percent": round(memory_info.percent, 2),
         }
     except ImportError:
         return {
@@ -352,7 +365,7 @@ async def health_check():
             "model_loaded": model is not None,
             "classes_available": len(class_names) if class_names else 0,
             "device": str(device),
-            "memory_monitoring": "unavailable"
+            "memory_monitoring": "unavailable",
         }
 
 
@@ -380,17 +393,19 @@ async def api_feedback_image(
     predicted_class: str = Form(...),
     correct_class: str = Form(...),
     confidence: float = Form(...),
-    comments: str = Form("")
+    comments: str = Form(""),
 ):
     """Alternative feedback endpoint for compatibility"""
     # Call the main feedback function directly
-    return await submit_feedback({
-        "predicted_class": predicted_class,
-        "correct_class": correct_class,
-        "confidence": confidence,
-        "comments": comments,
-        "file": file
-    })
+    return await submit_feedback(
+        {
+            "predicted_class": predicted_class,
+            "correct_class": correct_class,
+            "confidence": confidence,
+            "comments": comments,
+            "file": file,
+        }
+    )
 
 
 @app.get("/")
@@ -401,7 +416,9 @@ async def root():
             html_content = f.read()
         return HTMLResponse(content=html_content)
     except FileNotFoundError:
-        return {"message": "Frontend not found. Please check if frontend/index.html exists."}
+        return {
+            "message": "Frontend not found. Please check if frontend/index.html exists."
+        }
 
 
 @app.get("/classes")
@@ -413,7 +430,7 @@ async def get_classes():
     return {
         "status": "success",
         "num_classes": len(class_names),
-        "classes": class_names
+        "classes": class_names,
     }
 
 
@@ -426,14 +443,10 @@ async def get_analytics():
         tracker = MetricsTracker()
         report = tracker.generate_report()
 
-        return {
-            "status": "success",
-            "metrics": report
-        }
+        return {"status": "success", "metrics": report}
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to generate analytics: {str(e)}"
+            status_code=500, detail=f"Failed to generate analytics: {str(e)}"
         )
 
 
@@ -448,17 +461,13 @@ async def get_analytics_dashboard():
         _, dashboard_path = generate_analytics_report()
 
         # Read and encode image
-        with open(dashboard_path, 'rb') as f:
-            image_data = base64.b64encode(f.read()).decode('utf-8')
+        with open(dashboard_path, "rb") as f:
+            image_data = base64.b64encode(f.read()).decode("utf-8")
 
-        return {
-            "status": "success",
-            "dashboard": f"data:image/png;base64,{image_data}"
-        }
+        return {"status": "success", "dashboard": f"data:image/png;base64,{image_data}"}
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to generate dashboard: {str(e)}"
+            status_code=500, detail=f"Failed to generate dashboard: {str(e)}"
         )
 
 
@@ -470,13 +479,12 @@ async def predict_image(file: UploadFile = File(...)):
         if model is None:
             raise HTTPException(
                 status_code=503,
-                detail="Model is still loading. Please try again in a few moments."
+                detail="Model is still loading. Please try again in a few moments.",
             )
 
         # Validate file type
-        if not file.content_type.startswith('image/'):
-            raise HTTPException(
-                status_code=400, detail="File must be an image")
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="File must be an image")
 
         # Read image data
         image_data = await file.read()
@@ -484,12 +492,13 @@ async def predict_image(file: UploadFile = File(...)):
         # Validate file size (max 10MB)
         if len(image_data) > 10 * 1024 * 1024:
             raise HTTPException(
-                status_code=400, detail="Image file too large (max 10MB)")
+                status_code=400, detail="Image file too large (max 10MB)"
+            )
 
         # Open image and convert to RGB immediately
         with Image.open(io.BytesIO(image_data)) as img:
             # Convert to RGB and resize in one step to save memory
-            img = img.convert('RGB')
+            img = img.convert("RGB")
 
             # Apply transformation
             image_tensor = transform(img).unsqueeze(0).to(device)
@@ -515,23 +524,23 @@ async def predict_image(file: UploadFile = File(...)):
         del image_tensor, outputs, probabilities, top3_probs, top3_indices
 
         # Determine base class (simplified logic)
-        base_class = predicted_class.split(
-            '_')[0] if '_' in predicted_class else predicted_class
+        base_class = (
+            predicted_class.split("_")[0] if "_" in predicted_class else predicted_class
+        )
 
         return {
             "prediction": predicted_class,
             "base_class": base_class,
             "confidence": round(confidence_score, 4),
             "breeds": top3_classes,
-            "scores": [round(score, 4) for score in top3_scores]
+            "scores": [round(score, 4) for score in top3_scores],
         }
 
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Prediction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
 @app.post("/visualize")
@@ -542,13 +551,12 @@ async def visualize_prediction(file: UploadFile = File(...)):
         if model is None:
             raise HTTPException(
                 status_code=503,
-                detail="Model is still loading. Please try again in a few moments."
+                detail="Model is still loading. Please try again in a few moments.",
             )
 
         # Validate file type
-        if not file.content_type.startswith('image/'):
-            raise HTTPException(
-                status_code=400, detail="File must be an image")
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="File must be an image")
 
         # Read image data
         image_data = await file.read()
@@ -556,10 +564,11 @@ async def visualize_prediction(file: UploadFile = File(...)):
         # Validate file size (max 10MB)
         if len(image_data) > 10 * 1024 * 1024:
             raise HTTPException(
-                status_code=400, detail="Image file too large (max 10MB)")
+                status_code=400, detail="Image file too large (max 10MB)"
+            )
 
         # Open and process image
-        original_image = Image.open(io.BytesIO(image_data)).convert('RGB')
+        original_image = Image.open(io.BytesIO(image_data)).convert("RGB")
         image_tensor = transform(original_image).unsqueeze(0).to(device)
 
         # Import Grad-CAM module
@@ -568,37 +577,35 @@ async def visualize_prediction(file: UploadFile = File(...)):
             import cv2
 
             # Generate visualization
-            result = generate_gradcam_visualization(
-                model, image_tensor, original_image
-            )
+            result = generate_gradcam_visualization(model, image_tensor, original_image)
 
             # Convert overlaid image to base64
-            overlaid_pil = Image.fromarray(result['overlaid_image'])
+            overlaid_pil = Image.fromarray(result["overlaid_image"])
             buffer = io.BytesIO()
-            overlaid_pil.save(buffer, format='JPEG')
+            overlaid_pil.save(buffer, format="JPEG")
             buffer.seek(0)
-            overlaid_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+            overlaid_base64 = base64.b64encode(buffer.read()).decode("utf-8")
 
             # Get predicted class name
-            predicted_class = class_names[result['predicted_class']]
+            predicted_class = class_names[result["predicted_class"]]
 
             return {
                 "predicted_class": predicted_class,
-                "confidence": round(result['confidence'], 4),
+                "confidence": round(result["confidence"], 4),
                 "visualization": f"data:image/jpeg;base64,{overlaid_base64}",
-                "success": True
+                "success": True,
             }
 
         except ImportError as e:
             raise HTTPException(
                 status_code=500,
-                detail="Grad-CAM module not available. Install opencv-python.")
+                detail="Grad-CAM module not available. Install opencv-python.",
+            )
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Visualization failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Visualization failed: {str(e)}")
 
 
 @app.post("/feedback")
@@ -617,6 +624,7 @@ async def submit_feedback(feedback: dict):
         feedback_dir = "outputs/feedback_data"
         if os.path.exists(feedback_dir):
             import shutil
+
             shutil.rmtree(feedback_dir)  # Remove all old feedback data
         os.makedirs(feedback_dir, exist_ok=True)
 
@@ -629,6 +637,7 @@ async def submit_feedback(feedback: dict):
                     image_data = image_data.split(",")[1]
 
                 import base64
+
                 image_bytes = base64.b64decode(image_data)
 
                 # Create directory for correct class
@@ -637,7 +646,9 @@ async def submit_feedback(feedback: dict):
 
                 # Save image with timestamp
                 timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-                image_filename = f"{timestamp_str}_{predicted_class}_to_{correct_class}.jpg"
+                image_filename = (
+                    f"{timestamp_str}_{predicted_class}_to_{correct_class}.jpg"
+                )
                 image_path = os.path.join(class_dir, image_filename)
 
                 with open(image_path, "wb") as f:
@@ -655,7 +666,7 @@ async def submit_feedback(feedback: dict):
             "confidence": confidence,
             "comments": comments,
             "timestamp": timestamp,
-            "image_path": image_path
+            "image_path": image_path,
         }
 
         # Save feedback to log file
@@ -665,14 +676,14 @@ async def submit_feedback(feedback: dict):
         existing_feedback = []
         if os.path.exists(feedback_file):
             try:
-                with open(feedback_file, 'r') as f:
+                with open(feedback_file, "r") as f:
                     existing_feedback = json.load(f)
             except:
                 existing_feedback = []
 
         existing_feedback.append(feedback_data)
 
-        with open(feedback_file, 'w') as f:
+        with open(feedback_file, "w") as f:
             json.dump(existing_feedback, f, indent=2)
 
         feedback_id = len(existing_feedback)
@@ -681,13 +692,14 @@ async def submit_feedback(feedback: dict):
         print("🔄 Triggering reinforcement training (every feedback)")
         try:
             import asyncio
+
             asyncio.create_task(run_incremental_training())
             response_data = {
                 "status": "success",
                 "message": "Feedback submitted - Model retraining initiated",
                 "feedback_id": feedback_id,
                 "image_saved": image_path is not None,
-                "retraining_triggered": True
+                "retraining_triggered": True,
             }
         except Exception as train_error:
             print(f"⚠️  Failed to trigger training: {train_error}")
@@ -696,14 +708,16 @@ async def submit_feedback(feedback: dict):
                 "message": "Feedback submitted successfully",
                 "feedback_id": feedback_id,
                 "image_saved": image_path is not None,
-                "retraining_triggered": False
+                "retraining_triggered": False,
             }
 
         return response_data
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to submit feedback: {str(e)}")
+            status_code=500, detail=f"Failed to submit feedback: {str(e)}"
+        )
+
 
 # Mount static files
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")

@@ -16,7 +16,8 @@ class DynamicAnimalCNN(nn.Module):
 
         # Base ResNet18 feature extractor (will be frozen after initial training)
         self.feature_extractor = models.resnet18(
-            weights=models.ResNet18_Weights.DEFAULT)
+            weights=models.ResNet18_Weights.DEFAULT
+        )
 
         # Remove the final FC layer
         self.feature_extractor = nn.Sequential(
@@ -31,7 +32,7 @@ class DynamicAnimalCNN(nn.Module):
         self.projection = nn.Sequential(
             nn.Linear(512, base_features),  # ResNet18 outputs 512 features
             nn.ReLU(),
-            nn.Dropout(0.3)
+            nn.Dropout(0.3),
         )
 
         # Dynamic classifier head (can be expanded)
@@ -75,8 +76,7 @@ class DynamicAnimalCNN(nn.Module):
         self.classifier = new_classifier
         self.num_classes = new_num_classes
 
-        print(
-            f"✅ Expanded model from {old_num_classes} to {new_num_classes} classes")
+        print(f"✅ Expanded model from {old_num_classes} to {new_num_classes} classes")
         return self
 
     def freeze_old_classes(self):
@@ -99,7 +99,7 @@ class DynamicAnimalCNN(nn.Module):
         print("🔓 Unfrozen projection layer for fine-tuning")
 
 
-def expand_existing_model(old_model_path, new_num_classes, device='cuda'):
+def expand_existing_model(old_model_path, new_num_classes, device="cuda"):
     """
     Load an existing model and expand it to support new classes.
     """
@@ -107,8 +107,13 @@ def expand_existing_model(old_model_path, new_num_classes, device='cuda'):
     checkpoint = torch.load(old_model_path, map_location=device)
 
     # Detect old number of classes from checkpoint
-    old_num_classes = checkpoint['fc.3.weight'].shape[0] if 'fc.3.weight' in checkpoint else \
-        checkpoint['classifier.weight'].shape[0] if 'classifier.weight' in checkpoint else None
+    old_num_classes = (
+        checkpoint["fc.3.weight"].shape[0]
+        if "fc.3.weight" in checkpoint
+        else checkpoint["classifier.weight"].shape[0]
+        if "classifier.weight" in checkpoint
+        else None
+    )
 
     if old_num_classes is None:
         raise ValueError("Could not detect number of classes from checkpoint")

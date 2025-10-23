@@ -11,11 +11,13 @@ def log_correction(image_path, predicted, actual):
     if os.path.exists(LOG_PATH):
         with open(LOG_PATH, "r") as f:
             log = json.load(f)
-    log.append({
-        "image": image_path,
-        "predicted": predicted,
-        "actual": actual,
-        "timestamp": str(datetime.now())
-    })
+    log.append(
+        {
+            "image": image_path,
+            "predicted": predicted,
+            "actual": actual,
+            "timestamp": str(datetime.now()),
+        }
+    )
     with open(LOG_PATH, "w") as f:
         json.dump(log, f, indent=2)

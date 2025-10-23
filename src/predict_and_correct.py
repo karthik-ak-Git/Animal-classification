@@ -24,12 +24,13 @@ class_names = list(dataset.class_map.keys())
 image_path = input("📷 Enter path to test image: ").strip()
 assert os.path.exists(image_path), f"File not found: {image_path}"
 
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
-])
+transform = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
 image = Image.open(image_path).convert("RGB")
 input_tensor = transform(image).unsqueeze(0).to(device)
 
@@ -57,8 +58,7 @@ if true_class.lower() != "skip":
     # Save image to correct class folder
     corrected_path = os.path.join("dataset", true_class)
     os.makedirs(corrected_path, exist_ok=True)
-    shutil.copy(image_path, os.path.join(
-        corrected_path, os.path.basename(image_path)))
+    shutil.copy(image_path, os.path.join(corrected_path, os.path.basename(image_path)))
 
     # Log correction
     log_correction(image_path, predicted_class, true_class)

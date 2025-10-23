@@ -12,12 +12,13 @@ from utilss.logger import LOG_PATH
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 🔧 Transform (same as original training)
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
-])
+transform = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ]
+)
 
 # 🐾 Load full dataset
 dataset = AnimalDataset("dataset", transform=transform)
@@ -81,7 +82,8 @@ for epoch in range(3):
         correct += (outputs.argmax(1) == labels).sum().item()
         total += imgs.size(0)
     print(
-        f"📘 Epoch {epoch+1} | Loss: {total_loss/total:.4f} | Accuracy: {correct/total:.4f}")
+        f"📘 Epoch {epoch+1} | Loss: {total_loss/total:.4f} | Accuracy: {correct/total:.4f}"
+    )
 
 # 💾 Overwrite existing model
 save_path = "outputs/best_model.pth"

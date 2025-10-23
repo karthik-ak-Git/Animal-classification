@@ -8,8 +8,7 @@ from pathlib import Path
 from PIL import Image
 import sys
 
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 class TestFeedbackLoop:
@@ -40,7 +39,7 @@ class TestFeedbackLoop:
         class_dir = os.path.join(feedback_dir, test_class)
         os.makedirs(class_dir, exist_ok=True)
 
-        img = Image.new('RGB', (224, 224), color='red')
+        img = Image.new("RGB", (224, 224), color="red")
         img_path = os.path.join(class_dir, "test_image.jpg")
         img.save(img_path)
 
@@ -52,7 +51,7 @@ class TestFeedbackLoop:
         log_file = "outputs/correction_log.json"
 
         if os.path.exists(log_file):
-            with open(log_file, 'r') as f:
+            with open(log_file, "r") as f:
                 logs = json.load(f)
 
             assert isinstance(logs, list)
@@ -70,8 +69,11 @@ class TestDatasetIntegrity:
         dataset_path = "dataset"
 
         if os.path.exists(dataset_path):
-            subdirs = [d for d in os.listdir(dataset_path)
-                       if os.path.isdir(os.path.join(dataset_path, d))]
+            subdirs = [
+                d
+                for d in os.listdir(dataset_path)
+                if os.path.isdir(os.path.join(dataset_path, d))
+            ]
 
             assert len(subdirs) > 0, "Dataset should have at least one class"
 
@@ -79,8 +81,9 @@ class TestDatasetIntegrity:
             for subdir in subdirs[:3]:  # Check first 3 classes
                 class_path = os.path.join(dataset_path, subdir)
                 files = os.listdir(class_path)
-                image_files = [f for f in files
-                               if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                image_files = [
+                    f for f in files if f.lower().endswith((".png", ".jpg", ".jpeg"))
+                ]
 
                 # Should have at least one image per class
                 assert len(image_files) >= 0
@@ -93,7 +96,7 @@ class TestDatasetIntegrity:
             # Find first image
             for root, dirs, files in os.walk(dataset_path):
                 for file in files:
-                    if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    if file.lower().endswith((".png", ".jpg", ".jpeg")):
                         img_path = os.path.join(root, file)
                         try:
                             img = Image.open(img_path)
@@ -101,8 +104,7 @@ class TestDatasetIntegrity:
                             assert img is not None
                             return  # Test passed
                         except Exception as e:
-                            pytest.fail(
-                                f"Failed to load image {img_path}: {e}")
+                            pytest.fail(f"Failed to load image {img_path}: {e}")
 
 
 class TestModelPersistence:
@@ -120,7 +122,7 @@ class TestModelPersistence:
         if os.path.exists(model_path):
             # Try to load the model
             try:
-                state_dict = torch.load(model_path, map_location='cpu')
+                state_dict = torch.load(model_path, map_location="cpu")
                 assert isinstance(state_dict, dict)
                 assert len(state_dict) > 0
             except Exception as e:
@@ -137,7 +139,7 @@ class TestIncrementalLearning:
         # Create test structure
         os.makedirs(feedback_dir, exist_ok=True)
         test_file = os.path.join(feedback_dir, "test.txt")
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write("test")
 
         assert os.path.exists(test_file)

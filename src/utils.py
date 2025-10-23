@@ -15,7 +15,7 @@ def show_batch_images(dataloader, class_map):
         img = img.permute(1, 2, 0).numpy()
         ax.imshow(img)
         ax.set_title(class_names[lbl])
-        ax.axis('off')
+        ax.axis("off")
 
     plt.tight_layout()
     plt.show()
