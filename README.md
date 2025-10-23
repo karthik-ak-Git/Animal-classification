@@ -503,6 +503,7 @@ We welcome contributions! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md
 
 - **[API Documentation](docs/API.md)** - Complete API reference with examples
 - **[Architecture](docs/ARCHITECTURE.md)** - System design and components
+- **[CI/CD Pipeline](docs/CI_CD.md)** - Continuous integration and deployment guide
 - **[Docker Guide](docs/DOCKER.md)** - Deployment with Docker
 - **[Incremental Learning](docs/INCREMENTAL_LEARNING.md)** - Continuous learning system
 - **[Contributing](docs/CONTRIBUTING.md)** - Contribution guidelines
