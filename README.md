@@ -27,7 +27,6 @@ A **production-ready** deep learning web application for classifying 75+ animal 
 - � **Security Features** - Rate limiting, input validation, security headers
 - 🐳 **Docker Support** - Containerized deployment with docker-compose
 - 🧪 **Comprehensive Testing** - 80%+ test coverage with pytest
-- � **CI/CD Pipeline** - Automated testing and deployment with GitHub Actions
 
 ---
 
@@ -501,14 +500,21 @@ We welcome contributions! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md
 
 ## 📚 Documentation
 
+### Core Documentation
+- **[Quick Start](docs/QUICKSTART.md)** - Get started in 5 minutes ⚡
 - **[API Documentation](docs/API.md)** - Complete API reference with examples
 - **[Architecture](docs/ARCHITECTURE.md)** - System design and components
-- **[CI/CD Pipeline](docs/CI_CD.md)** - Continuous integration and deployment guide
+
+### Development & Deployment
 - **[Docker Guide](docs/DOCKER.md)** - Deployment with Docker
-- **[Incremental Learning](docs/INCREMENTAL_LEARNING.md)** - Continuous learning system
 - **[Contributing](docs/CONTRIBUTING.md)** - Contribution guidelines
 - **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Detailed file organization
-- **[Quick Start](docs/QUICKSTART.md)** - Get started in 5 minutes
+
+### Advanced Features
+- **[Incremental Learning](docs/INCREMENTAL_LEARNING.md)** - Continuous learning system
+
+### Presentations
+- **[Gamma Presentation](GAMMA_PRESENTATION.md)** - 10-slide presentation content 🎯
 
 ---
 
