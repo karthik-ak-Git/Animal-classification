@@ -58,7 +58,13 @@ class TestFeedbackLoop:
 
             if len(logs) > 0:
                 entry = logs[0]
-                assert "predicted_class" in entry or "correct_class" in entry
+                # Support both old format (predicted/actual) and new format (predicted_class/correct_class)
+                assert (
+                    "predicted_class" in entry
+                    or "correct_class" in entry
+                    or "predicted" in entry
+                    or "actual" in entry
+                )
 
 
 class TestDatasetIntegrity:
