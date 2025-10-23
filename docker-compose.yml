@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Main application service
+  animal-classifier:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./dataset:/app/dataset:ro
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    environment:
+      - PORT=8000
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  # Optional: TensorBoard for monitoring
+  tensorboard:
+    image: tensorflow/tensorflow:latest
+    command: tensorboard --logdir=/logs --host=0.0.0.0 --port=6006
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./logs:/logs:ro
+    networks:
+      - app-network
+    profiles:
+      - monitoring
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  outputs:
+  logs:

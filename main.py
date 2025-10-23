@@ -2,9 +2,9 @@ import torch
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from data.dataloader import AnimalDataset
-from model import AnimalCNN
-from train import train
-from evaluate import evaluate
+from src.model import AnimalCNN
+from src.train import train
+from src.evaluate import evaluate
 from collections import Counter
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 

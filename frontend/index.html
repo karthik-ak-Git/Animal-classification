@@ -4,248 +4,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animal Classification AI - Advanced Image Recognition</title>
+    <title>AnimalAI - Professional Classification System</title>
     <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
 
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Custom CSS -->
+
+    <!-- Custom Styles -->
     <link href="frontend/styles.css" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Background Elements -->
-    <div class="background-elements">
-        <div class="gradient-orb orb-1"></div>
-        <div class="gradient-orb orb-2"></div>
-        <div class="gradient-orb orb-3"></div>
+
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="grid-overlay"></div>
+        <div class="gradient-sphere sphere-1"></div>
+        <div class="gradient-sphere sphere-2"></div>
+        <div class="gradient-sphere sphere-3"></div>
+        <div class="mesh-gradient"></div>
     </div>
 
-    <div class="app-container">
-        <!-- Modern Header -->
-        <header class="app-header">
+    <!-- Main Container -->
+    <div class="main-wrapper">
+
+        <!-- Top Navigation -->
+        <nav class="top-navbar">
+            <div class="container-fluid px-4">
+                <div class="navbar-content">
+                    <div class="brand-section">
+                        <div class="brand-logo">
+                            <div class="logo-icon-wrapper">
+                                <i class="bi bi-robot"></i>
+                                <span class="status-dot"></span>
+                            </div>
+                            <div class="brand-text">
+                                <h1 class="brand-name">Animal<span class="highlight">AI</span></h1>
+                                <p class="brand-tagline">Neural Classification System</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nav-actions">
+                        <div class="stat-card">
+                            <i class="bi bi-collection-fill stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-value" id="class-count">75</div>
+                                <div class="stat-label">Species</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="bi bi-lightning-charge-fill stat-icon"></i>
+                            <div class="stat-content">
+                                <div class="stat-value">GPU</div>
+                                <div class="stat-label">Powered</div>
+                            </div>
+                        </div>
+                        <button class="btn-docs" onclick="window.open('/docs', '_blank')">
+                            <i class="bi bi-book"></i>
+                            <span>API Docs</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero-section">
             <div class="container">
-                <nav class="navbar">
-                    <div class="navbar-brand">
-                        <div class="logo-wrapper">
-                            <i class="bi bi-stars logo-icon"></i>
-                            <span class="logo-text">Animal<span class="logo-accent">AI</span></span>
-                        </div>
-                        <div class="badge-wrapper">
-                            <span class="badge bg-gradient-primary">
-                                <i class="bi bi-cpu-fill me-1"></i>Deep Learning
-                            </span>
-                        </div>
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="bi bi-stars"></i>
+                        <span>Powered by ResNet18 Deep Learning</span>
                     </div>
-                    <div class="navbar-stats">
-                        <div class="stat-item">
-                            <i class="bi bi-collection"></i>
-                            <span class="stat-value" id="total-classes">75</span>
-                            <span class="stat-label">Classes</span>
-                        </div>
-                        <div class="stat-item">
-                            <i class="bi bi-lightning-charge-fill"></i>
-                            <span class="stat-value">GPU</span>
-                            <span class="stat-label">Accelerated</span>
-                        </div>
-                    </div>
-                </nav>
-                <div class="header-content">
-                    <h1 class="hero-title">
-                        <span class="gradient-text">Advanced Animal Recognition</span>
-                    </h1>
-                    <p class="hero-subtitle">
-                        <i class="bi bi-robot me-2"></i>
-                        Powered by ResNet18 Deep Neural Network with 75+ Animal Species Detection
+                    <h2 class="hero-title">
+                        Advanced Animal Species
+                        <span class="gradient-text">Recognition System</span>
+                    </h2>
+                    <p class="hero-description">
+                        State-of-the-art deep neural network capable of identifying 75+ animal species
+                        with exceptional accuracy. Upload an image to begin instant classification.
                     </p>
                 </div>
             </div>
-        </header>
+        </section>
 
         <!-- Main Content -->
-        <main class="app-main">
+        <section class="content-section">
             <div class="container">
-                <!-- Upload Section -->
-                <section class="upload-section">
-                    <div class="upload-card-modern">
-                        <div class="upload-area-modern" id="upload-area">
-                            <div class="upload-content-modern">
-                                <div class="upload-icon-modern">
-                                    <div class="icon-bg">
-                                        <i class="bi bi-cloud-arrow-up"></i>
-                                    </div>
-                                </div>
-                                <h3 class="upload-title-modern">Drag & Drop Your Image</h3>
-                                <p class="upload-description-modern">
-                                    or <span class="text-primary fw-semibold">browse</span> to choose a file
-                                </p>
-                                <div class="supported-formats">
-                                    <i class="bi bi-file-earmark-image"></i>
-                                    <span>JPG, PNG, JPEG up to 10MB</span>
-                                </div>
-                                <input type="file" id="image-upload" class="d-none" accept="image/*">
-                                <button class="btn-upload-modern"
-                                    onclick="document.getElementById('image-upload').click()">
-                                    <i class="bi bi-upload me-2"></i>Choose Image
-                                </button>
+                <div class="content-grid">
+
+                    <!-- Upload Panel -->
+                    <div class="upload-panel" id="upload-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">
+                                <i class="bi bi-cloud-upload"></i>
+                                Image Upload
+                            </h3>
+                            <div class="panel-indicator">
+                                <span class="indicator-dot"></span>
+                                <span class="indicator-text">Ready</span>
                             </div>
+                        </div>
+
+                        <div class="upload-zone" id="upload-zone">
+                            <div class="upload-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                            </div>
+                            <h4 class="upload-title">Drop your image here</h4>
+                            <p class="upload-text">or click to browse files</p>
+                            <div class="upload-specs">
+                                <span class="spec-item"><i class="bi bi-file-image"></i> JPG, PNG, JPEG</span>
+                                <span class="spec-divider">•</span>
+                                <span class="spec-item"><i class="bi bi-hdd"></i> Max 10MB</span>
+                            </div>
+                            <input type="file" id="file-input" accept="image/*" hidden>
+                            <button class="btn-browse" onclick="document.getElementById('file-input').click()">
+                                <i class="bi bi-folder-open"></i>
+                                Browse Files
+                            </button>
                         </div>
 
                         <!-- Image Preview -->
-                        <div id="image-preview-container" class="image-preview-container-modern d-none">
-                            <div class="preview-wrapper-modern">
-                                <img id="image-preview" class="image-preview-modern" alt="Preview">
-                                <button class="btn-remove-modern" onclick="removeImage()" title="Remove image">
+                        <div class="image-preview-section" id="preview-section" style="display: none;">
+                            <div class="preview-header">
+                                <h4 class="preview-title">
+                                    <i class="bi bi-image"></i>
+                                    Image Preview
+                                </h4>
+                                <button class="btn-icon" onclick="clearImage()">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
+                            </div>
+                            <div class="preview-container">
+                                <img id="preview-image" alt="Preview">
                                 <div class="preview-overlay">
-                                    <div class="preview-filename" id="preview-filename"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Analyze Button -->
-                    <div class="analyze-section-modern">
-                        <button id="predict-button" class="btn-analyze-modern" disabled>
-                            <span class="btn-icon-wrapper">
-                                <i class="bi bi-magic"></i>
-                            </span>
-                            <span class="btn-text">Analyze with AI</span>
-                            <span class="btn-shine"></span>
-                        </button>
-                        <div class="processing-indicator d-none" id="processing-indicator">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                            <span class="ms-2">Processing with neural network...</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Prediction Result -->
-                <section id="result-container" class="result-section-modern d-none">
-                    <div class="prediction-card-modern">
-                        <div class="prediction-header-modern">
-                            <div class="ai-indicator-modern">
-                                <div class="ai-pulse"></div>
-                                <i class="bi bi-cpu-fill"></i>
-                                <span>Neural Network Analysis</span>
-                            </div>
-                            <div class="confidence-badge" id="confidence-badge">
-                                <i class="bi bi-graph-up-arrow"></i>
-                                <span id="confidence-percentage">0%</span>
-                            </div>
-                        </div>
-
-                        <div class="prediction-content-modern">
-                            <!-- Main Prediction -->
-                            <div class="main-prediction-modern">
-                                <div class="prediction-icon" id="prediction-icon">🐾</div>
-                                <div class="prediction-details">
-                                    <div class="prediction-label">Detected Species</div>
-                                    <h2 class="prediction-name" id="prediction-name">--</h2>
-                                    <div class="prediction-confidence">
-                                        <div class="confidence-bar-bg">
-                                            <div class="confidence-bar-fill" id="confidence-bar" style="width: 0%">
-                                            </div>
-                                        </div>
-                                        <span class="confidence-text" id="confidence-text">Confidence: 0%</span>
+                                    <div class="preview-info">
+                                        <span id="preview-filename">image.jpg</span>
+                                        <span id="preview-size">0 KB</span>
                                     </div>
                                 </div>
                             </div>
+                            <button class="btn-analyze" id="analyze-btn" onclick="analyzeImage()">
+                                <span class="btn-icon-left">
+                                    <i class="bi bi-cpu"></i>
+                                </span>
+                                <span class="btn-text">Analyze with Neural Network</span>
+                                <span class="btn-icon-right">
+                                    <i class="bi bi-arrow-right"></i>
+                                </span>
+                            </button>
+                        </div>
 
-                            <!-- Top Predictions -->
-                            <div class="top-predictions-modern">
-                                <h3 class="section-title">
-                                    <i class="bi bi-list-stars me-2"></i>Top Predictions
-                                </h3>
-                                <div class="predictions-list" id="predictions-list">
-                                    <!-- Dynamic predictions will be inserted here -->
+                        <!-- Processing State -->
+                        <div class="processing-state" id="processing-state" style="display: none;">
+                            <div class="processing-animation">
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                            </div>
+                            <h4 class="processing-title">Analyzing Image...</h4>
+                            <p class="processing-text">Neural network processing in progress</p>
+                            <div class="processing-steps">
+                                <div class="step active">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <span>Image preprocessing</span>
                                 </div>
+                                <div class="step active">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <span>Feature extraction</span>
+                                </div>
+                                <div class="step active">
+                                    <i class="bi bi-arrow-repeat spinning"></i>
+                                    <span>Classification</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Panel -->
+                    <div class="results-panel" id="results-panel" style="display: none;">
+                        <div class="panel-header">
+                            <h3 class="panel-title">
+                                <i class="bi bi-graph-up-arrow"></i>
+                                Classification Results
+                            </h3>
+                            <div class="panel-indicator success">
+                                <span class="indicator-dot"></span>
+                                <span class="indicator-text">Complete</span>
+                            </div>
+                        </div>
+
+                        <!-- Primary Result -->
+                        <div class="primary-result">
+                            <div class="result-icon" id="result-icon">🦁</div>
+                            <div class="result-details">
+                                <div class="result-label">Detected Species</div>
+                                <h3 class="result-name" id="result-name">African Lion</h3>
+                                <div class="confidence-display">
+                                    <div class="confidence-bar-container">
+                                        <div class="confidence-bar" id="confidence-bar" style="width: 0%"></div>
+                                        <div class="confidence-label">
+                                            <span>Confidence</span>
+                                            <span id="confidence-value">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Predictions -->
+                        <div class="predictions-section">
+                            <h4 class="section-heading">
+                                <i class="bi bi-list-ul"></i>
+                                Top Predictions
+                            </h4>
+                            <div class="predictions-list" id="predictions-list">
+                                <!-- Dynamic content -->
                             </div>
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="prediction-actions-modern">
-                            <button class="btn-action-modern btn-secondary-modern" onclick="resetApp()">
-                                <i class="bi bi-arrow-counterclockwise me-2"></i>
-                                Analyze Another
+                        <div class="action-buttons">
+                            <button class="btn-action btn-secondary" onclick="clearImage()">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span>New Analysis</span>
                             </button>
-                            <button id="show-feedback-btn" class="btn-action-modern btn-feedback-modern">
-                                <i class="bi bi-flag me-2"></i>
-                                Report Incorrect
+                            <button class="btn-action btn-warning" onclick="toggleFeedback()">
+                                <i class="bi bi-flag"></i>
+                                <span>Report Incorrect</span>
+                            </button>
+                            <button class="btn-action btn-primary" onclick="downloadResults()">
+                                <i class="bi bi-download"></i>
+                                <span>Export Results</span>
                             </button>
                         </div>
+
+                        <!-- Feedback Section -->
+                        <div class="feedback-section" id="feedback-section" style="display: none;">
+                            <div class="feedback-header">
+                                <h4 class="feedback-title">
+                                    <i class="bi bi-chat-left-text"></i>
+                                    Report Incorrect Classification
+                                </h4>
+                            </div>
+                            <div class="feedback-content">
+                                <p class="feedback-description">
+                                    Help improve our model by reporting incorrect classifications. Select the correct
+                                    species below:
+                                </p>
+                                <div class="feedback-form">
+                                    <div class="form-group">
+                                        <label class="form-label">Current Prediction</label>
+                                        <div class="current-prediction" id="current-prediction-display">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            <span id="feedback-current">--</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Correct Species</label>
+                                        <select class="form-select-custom" id="correct-species-select">
+                                            <option value="">Select correct species...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Additional Comments (Optional)</label>
+                                        <textarea class="form-textarea-custom" id="feedback-comments" rows="3"
+                                            placeholder="Any additional information..."></textarea>
+                                    </div>
+                                    <div class="feedback-actions">
+                                        <button class="btn-action btn-secondary" onclick="toggleFeedback()">
+                                            <i class="bi bi-x-lg"></i>
+                                            <span>Cancel</span>
+                                        </button>
+                                        <button class="btn-action btn-success" onclick="submitFeedback()">
+                                            <i class="bi bi-send"></i>
+                                            <span>Submit Feedback</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </section>
+
+                </div>
             </div>
-        </main>
+        </section>
 
         <!-- Footer -->
-        <footer class="app-footer">
+        <footer class="main-footer">
             <div class="container">
                 <div class="footer-content">
-                    <div class="footer-info">
+                    <div class="footer-left">
                         <p class="footer-text">
-                            <i class="bi bi-shield-check me-2"></i>
-                            Powered by ResNet18 Deep Learning Architecture
+                            © 2025 AnimalAI Classification System
                         </p>
                         <p class="footer-subtext">
-                            Trained on 75+ animal species with state-of-the-art accuracy
+                            Powered by PyTorch & ResNet18 Architecture
                         </p>
+                    </div>
+                    <div class="footer-right">
+                        <div class="tech-badge">
+                            <i class="bi bi-gpu-card"></i>
+                            <span>CUDA Accelerated</span>
+                        </div>
+                        <div class="tech-badge">
+                            <i class="bi bi-diagram-3"></i>
+                            <span>Deep Learning</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </footer>
+
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
     <script src="frontend/scripts.js"></script>
-</body>
-
-</html>
-</div>
-
-<!-- Feedback Section -->
-<div id="feedback-card" class="feedback-card collapse">
-    <div class="feedback-header">
-        <h6>Help improve the model</h6>
-        <p>What animal is this actually?</p>
-    </div>
-    <div class="feedback-form">
-        <select id="correction-dropdown" class="form-select">
-            <option value="">Select correct class...</option>
-        </select>
-        <button id="submit-correction" class="btn btn-success">
-            <i class="bi bi-check me-1"></i>Submit Correction
-        </button>
-    </div>
-</div>
-</section>
-</div>
-</main>
-
-<!-- Toast Container -->
-<div id="toast-container" class="toast-container"></div>
-</div>
-
-<!-- jQuery + Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Custom JS -->
-<script src="frontend/scripts.js"></script>
 </body>
 
 </html>

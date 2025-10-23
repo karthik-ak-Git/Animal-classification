@@ -12,13 +12,33 @@ import os
 import base64
 import asyncio
 from pathlib import Path
-from model import AnimalCNN
+from src.model import AnimalCNN
 import numpy as np
 from datetime import datetime
 from typing import Optional
 
 # Initialize FastAPI app
-app = FastAPI(title="Animal Classification API", version="1.0.0")
+app = FastAPI(
+    title="Animal Classification API",
+    version="2.0.0",
+    description="Professional AI-powered animal species classification with feedback loop",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Add security middleware
+try:
+    from src.security import RateLimitMiddleware, SecurityHeadersMiddleware
+
+    # Add rate limiting (100 requests per 60 seconds)
+    app.add_middleware(RateLimitMiddleware, calls=100, period=60)
+
+    # Add security headers
+    app.add_middleware(SecurityHeadersMiddleware)
+
+    print("✅ Security middleware enabled")
+except ImportError:
+    print("⚠️  Security middleware not available")
 
 # Add CORS middleware
 app.add_middleware(
@@ -377,11 +397,11 @@ async def api_feedback_image(
 async def root():
     """Serve the main HTML page"""
     try:
-        with open("frontend/index_new.html", "r", encoding="utf-8") as f:
+        with open("frontend/index.html", "r", encoding="utf-8") as f:
             html_content = f.read()
         return HTMLResponse(content=html_content)
     except FileNotFoundError:
-        return {"message": "Frontend not found. Please check if frontend/index_new.html exists."}
+        return {"message": "Frontend not found. Please check if frontend/index.html exists."}
 
 
 @app.get("/classes")
@@ -395,6 +415,51 @@ async def get_classes():
         "num_classes": len(class_names),
         "classes": class_names
     }
+
+
+@app.get("/analytics")
+async def get_analytics():
+    """Get model performance analytics and metrics"""
+    try:
+        from src.analytics import MetricsTracker
+
+        tracker = MetricsTracker()
+        report = tracker.generate_report()
+
+        return {
+            "status": "success",
+            "metrics": report
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate analytics: {str(e)}"
+        )
+
+
+@app.get("/analytics/dashboard")
+async def get_analytics_dashboard():
+    """Generate and return analytics dashboard image"""
+    try:
+        from src.analytics import generate_analytics_report
+        import base64
+
+        # Generate dashboard
+        _, dashboard_path = generate_analytics_report()
+
+        # Read and encode image
+        with open(dashboard_path, 'rb') as f:
+            image_data = base64.b64encode(f.read()).decode('utf-8')
+
+        return {
+            "status": "success",
+            "dashboard": f"data:image/png;base64,{image_data}"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate dashboard: {str(e)}"
+        )
 
 
 @app.post("/predict")
@@ -467,6 +532,73 @@ async def predict_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Prediction failed: {str(e)}")
+
+
+@app.post("/visualize")
+async def visualize_prediction(file: UploadFile = File(...)):
+    """Generate Grad-CAM visualization for uploaded image"""
+    try:
+        # Check if model is loaded
+        if model is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Model is still loading. Please try again in a few moments."
+            )
+
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(
+                status_code=400, detail="File must be an image")
+
+        # Read image data
+        image_data = await file.read()
+
+        # Validate file size (max 10MB)
+        if len(image_data) > 10 * 1024 * 1024:
+            raise HTTPException(
+                status_code=400, detail="Image file too large (max 10MB)")
+
+        # Open and process image
+        original_image = Image.open(io.BytesIO(image_data)).convert('RGB')
+        image_tensor = transform(original_image).unsqueeze(0).to(device)
+
+        # Import Grad-CAM module
+        try:
+            from src.gradcam import generate_gradcam_visualization
+            import cv2
+
+            # Generate visualization
+            result = generate_gradcam_visualization(
+                model, image_tensor, original_image
+            )
+
+            # Convert overlaid image to base64
+            overlaid_pil = Image.fromarray(result['overlaid_image'])
+            buffer = io.BytesIO()
+            overlaid_pil.save(buffer, format='JPEG')
+            buffer.seek(0)
+            overlaid_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+
+            # Get predicted class name
+            predicted_class = class_names[result['predicted_class']]
+
+            return {
+                "predicted_class": predicted_class,
+                "confidence": round(result['confidence'], 4),
+                "visualization": f"data:image/jpeg;base64,{overlaid_base64}",
+                "success": True
+            }
+
+        except ImportError as e:
+            raise HTTPException(
+                status_code=500,
+                detail="Grad-CAM module not available. Install opencv-python.")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Visualization failed: {str(e)}")
 
 
 @app.post("/feedback")

@@ -1,726 +1,501 @@
-// ============================================document.addEventListener('DOMContentLoaded', function () {
-
-// MODERN ANIMAL CLASSIFICATION AI - SCRIPTS    // DOM Elements
-
-// ============================================    const submitCorrectionButton = document.getElementById('submit-correction');
-
-const correctionDropdown = document.getElementById('correction-dropdown');
+// ========================================
+// PROFESSIONAL ANIMAL AI CLASSIFICATION
+// Enhanced JavaScript
+// ========================================
 
 document.addEventListener('DOMContentLoaded', function () {
-    const animalClassesList = document.getElementById('animal-classes-list');
+    // DOM Elements
+    const fileInput = document.getElementById('file-input');
+    const uploadZone = document.getElementById('upload-zone');
+    const uploadPanel = document.getElementById('upload-panel');
+    const previewSection = document.getElementById('preview-section');
+    const processingState = document.getElementById('processing-state');
+    const resultsPanel = document.getElementById('results-panel');
+    const previewImage = document.getElementById('preview-image');
+    const previewFilename = document.getElementById('preview-filename');
+    const previewSize = document.getElementById('preview-size');
+    const analyzeBtn = document.getElementById('analyze-btn');
 
-    // DOM Elements    const imageUpload = document.getElementById('image-upload');
+    // Result elements
+    const resultIcon = document.getElementById('result-icon');
+    const resultName = document.getElementById('result-name');
+    const confidenceBar = document.getElementById('confidence-bar');
+    const confidenceValue = document.getElementById('confidence-value');
+    const predictionsList = document.getElementById('predictions-list');
 
-    const imageUpload = document.getElementById('image-upload'); const predictButton = document.getElementById('predict-button');
+    let currentImageData = null;
+    let currentPrediction = null;
+    let allClasses = [];
+    let isProcessing = false; // Flag to prevent duplicate uploads
 
-    const predictButton = document.getElementById('predict-button'); const resultContainer = document.getElementById('result-container');
+    // Animal Emoji Map
+    const animalEmojis = {
+        'Dog': '🐕', 'German Shepherd': '🐕‍🦺', 'Golden Retriever': '🦮', 'Labrador': '🐕‍🦺', 'Pug': '🐶',
+        'Domestic Dog': '🐕',
+        'Cat': '🐈', 'Persian Cat': '😺', 'Siamese Cat': '🐈', 'Bengal Cat': '🐈‍⬛', 'Maine Coon': '🐈',
+        'Bird': '🐦', 'Eagle': '🦅', 'Owl': '🦉', 'Parrot': '🦜', 'Amazon parrot': '🦜',
+        'Swan': '🦢', 'Duck': '🦆', 'Ducks': '🦆', 'Penguin': '🐧', 'Flamingo': '🦩',
+        'Hummingbird': '🐦', 'Peacock': '🦚', 'Ostrich': '🦤', 'Crows': '🐦‍⬛', 'Cuckoo': '🐦',
+        'Cockatiel': '🦜', 'Kingfishers': '🐦', 'Woodpeckers': '🦜', 'Falcons': '🦅',
+        'House Sparrows': '🐦', 'pigeons': '🦜', 'Swallows': '🐦',
+        'Bear': '🐻', 'Polar_Bear': '🐻‍❄️', 'Grizzly_Bear': '🐻', 'American_Black_Bear': '🐻',
+        'Asiatic_Black_Bear': '🐻', 'Sloth_Bear': '🐻', 'Sun_Bear': '🐻',
+        'Panda': '🐼', 'Giant Panda': '🐼', 'Red Panda': '🐼',
+        'Lion': '🦁', 'African Lion': '🦁', 'Asiatic Lion': '🦁',
+        'Tiger': '🐯', 'Bengal Tiger': '🐅', 'Siberian Tiger': '🐯',
+        'Elephant': '🐘', 'African Elephant': '🐘', 'Asian Elephant': '🐘',
+        'Giraffe': '🦒', 'Reticulated Giraffe': '🦒', 'Masai Giraffe': '🦒',
+        'Horse': '🐴', 'Arabian Horse': '🐴', 'Thoroughbred': '🐴', 'Clydesdale': '🐎',
+        'Cow': '🐄', 'Jersey Cow': '🐄', 'Angus': '🐂', 'Domestic Cattle': '🐮',
+        'Deer': '🦌', 'Red Deer': '🦌', 'White-tailed Deer': '🦌', 'Mule_Deer': '🦌',
+        'Dolphin': '🐬', 'Bottlenose Dolphin': '🐬', 'Spinner Dolphin': '🐬',
+        'Kangaroo': '🦘', 'Red Kangaroo': '🦘', 'Eastern Grey Kangaroo': '🦘',
+        'Zebra': '🦓', 'Plains Zebra': '🦓', 'Mountain Zebra': '🦓',
+        'Wildcat': '🐆', 'African Wildcat': '🐆'
+    };
 
-    const resultContainer = document.getElementById('result-container'); const feedbackCard = document.getElementById('feedback-card');
-
-    const uploadArea = document.getElementById('upload-area'); const feedbackReceivedAlert = document.getElementById('feedback-received-alert');
-
-    const imagePreviewContainer = document.getElementById('image-preview-container'); const showFeedbackBtn = document.getElementById('show-feedback-btn');
-
-    const imagePreview = document.getElementById('image-preview'); const uploadArea = document.getElementById('upload-area');
-
-    const previewFilename = document.getElementById('preview-filename'); const imagePreviewContainer = document.getElementById('image-preview-container');
-
-    const processingIndicator = document.getElementById('processing-indicator'); const imagePreview = document.getElementById('image-preview');
-
-    const copyBreedBtn = document.getElementById('copy-breed-btn');
-
-    // Result elements    const toastContainer = document.getElementById('toast-container');
-
-    const predictionName = document.getElementById('prediction-name');
-
-    const predictionIcon = document.getElementById('prediction-icon');    // Prediction display elements
-
-    const confidencePercentage = document.getElementById('confidence-percentage'); const classEmoji = document.getElementById('class-emoji');
-
-    const confidenceBadge = document.getElementById('confidence-badge'); const mainClassLabel = document.getElementById('main-class-label');
-
-    const confidenceBar = document.getElementById('confidence-bar'); const breedDisplay = document.getElementById('breed-display');
-
-    const confidenceText = document.getElementById('confidence-text'); const breedName = document.getElementById('breed-name');
-
-    const predictionsList = document.getElementById('predictions-list'); const confidenceText = document.getElementById('confidence-text');
-
-
-
-    let currentImageData = null; let animalClasses = [];
-
-    let currentBreedName = '';
-
-    // Animal emoji mapping
-
-    const animalEmojis = {    // Animal emoji mapping
-
-        'Dog': '🐶', 'German Shepherd': '🐕', 'Golden Retriever': '🦮', 'Labrador': '🐕‍🦺', 'Pug': '🐶', const animalEmojis = {
-
-            'Cat': '🐱', 'Persian Cat': '🐱', 'Siamese Cat': '🐈', 'Bengal Cat': '🐈', 'Maine Coon': '🐈‍⬛', 'Dog': '🐶',
-
-            'Bird': '🐦', 'Eagle': '🦅', 'Owl': '🦉', 'Parrot': '🦜', 'Swan': '🦢', 'Duck': '🦆', 'Cat': '🐱',
-
-            'Penguin': '🐧', 'Flamingo': '🦩', 'Hummingbird': '🐦', 'Peacock': '🦚', 'Bird': '🐦',
-
-            'Bear': '🐻', 'Polar_Bear': '🐻‍❄️', 'Grizzly_Bear': '🐻', 'Panda': '🐼', 'Giant Panda': '🐼', 'Red Panda': '🐼', 'Bear': '🐻',
-
-            'Lion': '🦁', 'African Lion': '🦁', 'Asiatic Lion': '🦁', 'Lion': '🦁',
-
-            'Tiger': '🐯', 'Bengal Tiger': '🐅', 'Siberian Tiger': '🐯', 'Tiger': '🐯',
-
-            'Elephant': '🐘', 'African Elephant': '🐘', 'Asian Elephant': '🐘', 'Elephant': '🐘',
-
-            'Giraffe': '🦒', 'Reticulated Giraffe': '🦒', 'Masai Giraffe': '🦒', 'Giraffe': '🦒',
-
-            'Horse': '🐎', 'Arabian Horse': '🐴', 'Thoroughbred': '🐴', 'Clydesdale': '🐎', 'Horse': '🐎',
-
-            'Cow': '🐮', 'Jersey Cow': '🐄', 'Angus': '🐂', 'Domestic Cattle': '🐮', 'Cow': '🐮',
-
-            'Deer': '🦌', 'Red Deer': '🦌', 'White-tailed Deer': '🦌', 'Mule_Deer': '🦌', 'Deer': '🦌',
-
-            'Dolphin': '🐬', 'Bottlenose Dolphin': '🐬', 'Spinner Dolphin': '🐬', 'Dolphin': '🐬',
-
-            'Kangaroo': '🦘', 'Red Kangaroo': '🦘', 'Eastern Grey Kangaroo': '🦘', 'Kangaroo': '🦘',
-
-            'Zebra': '🦓', 'Plains Zebra': '🦓', 'Mountain Zebra': '🦓', 'Panda': '🐼',
-
-            'Wildcat': '🐆', 'African Wildcat': '🐆', 'Zebra': '🦓',
-
-            'Ostrich': '🦤', 'Crows': '🐦‍⬛', 'Pigeons': '🐦', 'Sparrow': '🐦'        'Penguin': '🐧',
-
-        }; 'Owl': '🦉',
-
-        'Eagle': '🦅',
-
-        // Get emoji for animal        'Parrot': '🦜',
-
-        function getAnimalEmoji(animalName) { 'Swan': '🦢',
-
-            // Check direct match        'Duck': '🦆',
-
-            if (animalEmojis[animalName]) {
-                'Crow': '🐦',
-
-            return animalEmojis[animalName]; 'Sparrow': '🐦',
-
-        } 'Hummingbird': '🐦',
-
-        'Woodpecker': '🐦',
-
-        // Check if name contains any keyword        'Kingfisher': '🐦',
+    // Get emoji for animal
+    function getAnimalEmoji(name) {
+        if (animalEmojis[name]) return animalEmojis[name];
 
         for (const [key, emoji] of Object.entries(animalEmojis)) {
-        'Falcon': '🦅',
+            if (name.includes(key) || key.includes(name.split('_')[0])) {
+                return emoji;
+            }
+        }
+        return '🐾';
+    }
 
-            if (animalName.includes(key) || key.includes(animalName.split('_')[0])) {
-            'Ostrich': '🦃',
-
-                return emoji; 'Pigeon': '🕊️',
-
-            } 'Swallow': '🐦',
-
-        } 'Cuckoo': '🐦'
-
-};
-
-return '🐾'; // Default
-
-    }    // Toast notification system
-
-function showToast(message, type = 'info', duration = 4000) {
-
-    // Format class name for display        const toast = document.createElement('div');
-
+    // Format class name
     function formatClassName(name) {
-        toast.className = `toast ${type}`;
-
-        return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); toast.textContent = message;
-
+        return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
 
-    toastContainer.appendChild(toast);
-
-    // Drag and drop functionality
-
-    uploadArea.addEventListener('dragover', function (e) {        // Auto remove after duration
-
-        e.preventDefault(); setTimeout(() => {
-
-            uploadArea.classList.add('dragover'); toast.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-
-        }); setTimeout(() => {
-
-            if (toast.parentNode) {
-
-                uploadArea.addEventListener('dragleave', function () {
-                    toast.parentNode.removeChild(toast);
-
-                    uploadArea.classList.remove('dragover');
-                }
-
-    });
-    }, 300);
-
-}, duration);
-
-uploadArea.addEventListener('drop', function (e) { }
-
-        e.preventDefault();
-
-uploadArea.classList.remove('dragover');    // Fetch classes from backend
-
-const files = e.dataTransfer.files; async function loadClassOptions() {
-
-    if (files.length > 0) {
+    // Load classes count and populate feedback dropdown
+    async function loadClassesCount() {
         try {
-
-            handleFileSelect(files[0]); const res = await fetch('/classes');
-
-        }            const data = await res.json();
-
-    }); animalClasses = data.classes || [];
-
-    populateClassDropdowns();
-
-    // File input change        } catch (error) {
-
-    imageUpload.addEventListener('change', function (e) {
-        console.error("Error loading class options:", error);
-
-        if (e.target.files.length > 0) {
-            showToast('Failed to load animal classes', 'error');
-
-            handleFileSelect(e.target.files[0]);
-        }
-
-    }    }
-
-    });
-
-// Populate dropdowns
-
-// Handle file selection    function populateClassDropdowns() {
-
-function handleFileSelect(file) {
-    correctionDropdown.innerHTML = '<option value="">Select correct class...</option>';
-
-    if (!file.type.startsWith('image/')) {
-
-        showToast('Please select a valid image file', 'error'); animalClasses.forEach((animal) => {
-
-            return; const displayName = animal.replace(/_/g, ' ');
-
-        }            const option = document.createElement('option');
-
-        option.value = animal;
-
-        if (file.size > 10 * 1024 * 1024) {
-            option.textContent = displayName;
-
-            showToast('Image size must be less than 10MB', 'error'); correctionDropdown.appendChild(option);
-
-            return;
-        });
-
-    }
-}
-
-
-
-const reader = new FileReader();    // Get emoji for animal class
-
-reader.onload = function (e) {
-    function getAnimalEmoji(className) {
-
-        currentImageData = e.target.result; const baseClass = getBaseClass(className);
-
-        imagePreview.src = e.target.result; return animalEmojis[baseClass] || '🐾';
-
-        previewFilename.textContent = file.name;
-    }
-
-
-
-    // Show preview, hide upload area    // Get base class from full class name
-
-    uploadArea.classList.add('d-none'); function getBaseClass(className) {
-
-        imagePreviewContainer.classList.remove('d-none'); const cleanName = className.replace(/_/g, ' ');
-
-        predictButton.disabled = false; for (const [baseClass, emoji] of Object.entries(animalEmojis)) {
-
-            if (cleanName.includes(baseClass)) {
-
-                // Hide previous results                return baseClass;
-
-                resultContainer.classList.add('d-none');
+            const response = await fetch('/classes');
+            const data = await response.json();
+            if (data.num_classes) {
+                document.getElementById('class-count').textContent = data.num_classes;
             }
-
-        };
-    }
-
-    reader.readAsDataURL(file); return cleanName.split(' ')[0];
-
-}    }
-
-
-
-// Remove image    // Handle image upload
-
-window.removeImage = function () {
-    function handleImageUpload(file) {
-
-        imageUpload.value = ''; if (!file) return;
-
-        currentImageData = null;
-
-        uploadArea.classList.remove('d-none');        // Validate file type
-
-        imagePreviewContainer.classList.add('d-none'); if (!file.type.startsWith('image/')) {
-
-            predictButton.disabled = true; showToast('Please select a valid image file', 'error');
-
-            resultContainer.classList.add('d-none'); return;
-
-        };
-    }
-
-
-
-    // Reset app        // Validate file size (10MB limit)
-
-    window.resetApp = function () {
-        if (file.size > 10 * 1024 * 1024) {
-
-            removeImage(); showToast('Image size must be less than 10MB', 'error');
-
-        }; return;
-
-    }
-
-    // Predict button click
-
-    predictButton.addEventListener('click', async function () {
-        const reader = new FileReader();
-
-        if (!currentImageData) {
-            reader.onload = function (e) {
-
-                showToast('Please select an image first', 'error'); imagePreview.src = e.target.result;
-
-                return; imagePreviewContainer.classList.remove('d-none');
-
-            }            uploadArea.classList.add('d-none');
-
-            predictButton.disabled = false;
-
-            // Show processing indicator
-
-            predictButton.disabled = true;            // Animate in the preview
-
-            processingIndicator.classList.remove('d-none'); imagePreviewContainer.style.animation = 'slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-
-            resultContainer.classList.add('d-none');
-        };
-
-        reader.readAsDataURL(file);
-
-        try { }
-
-            // Convert base64 to blob
-
-            const blob = dataURItoBlob(currentImageData);    // Remove image
-
-        const formData = new FormData(); window.removeImage = function () {
-
-            formData.append('file', blob, 'image.jpg'); imageUpload.value = '';
-
-            imagePreviewContainer.classList.add('d-none');
-
-            // Make prediction request        uploadArea.classList.remove('d-none');
-
-            const response = await fetch('/predict', {
-                predictButton.disabled = true;
-
-                method: 'POST', resultContainer.classList.add('d-none');
-
-                body: formData
-
-            });        // Reset animations
-
-            imagePreviewContainer.style.animation = '';
-
-            if (!response.ok) { };
-
-            throw new Error(`Server error: ${response.status}`);
-
-        }    // Animated prediction display
-
-        async function displayPrediction(result) {
-
-            const data = await response.json(); const baseClass = getBaseClass(result.prediction);
-
-            displayPrediction(data); const emoji = getAnimalEmoji(result.prediction);
-
-            const confidence = (result.confidence * 100).toFixed(1);
-
+            if (data.classes) {
+                allClasses = data.classes;
+                populateFeedbackDropdown();
+            }
         } catch (error) {
-
-            console.error('Prediction error:', error);        // Reset display
-
-            showToast('Prediction failed. Please try again.', 'error'); resultContainer.classList.remove('d-none');
-
-        } finally {
-            breedDisplay.classList.add('d-none');
-
-            predictButton.disabled = false; copyBreedBtn.classList.add('d-none');
-
-            processingIndicator.classList.add('d-none');
-
-        }        // Show main class with animation
-
-    }); classEmoji.textContent = emoji;
-
-    mainClassLabel.textContent = baseClass;
-
-    // Display prediction results
-
-    function displayPrediction(data) {        // Wait for main class animation, then show breed
-
-        // Update main prediction        setTimeout(() => {
-
-        const emoji = getAnimalEmoji(data.prediction); if (result.breeds && result.breeds.length > 0) {
-
-            predictionIcon.textContent = emoji; currentBreedName = result.breeds[0];
-
-            predictionName.textContent = formatClassName(data.prediction); breedName.textContent = currentBreedName;
-
-            confidenceText.textContent = `Confidence: ${confidence}%`;
-
-            // Update confidence                breedDisplay.classList.remove('d-none');
-
-            const confidencePercent = Math.round(data.confidence * 100); copyBreedBtn.classList.remove('d-none');
-
-            confidencePercentage.textContent = `${confidencePercent}%`;
+            console.error('Failed to load classes:', error);
         }
+    }
 
-        confidenceBar.style.width = `${confidencePercent}%`;
-    }, 1500);
+    // Populate feedback species dropdown
+    function populateFeedbackDropdown() {
+        const correctSpeciesSelect = document.getElementById('correct-species-select');
+        if (!correctSpeciesSelect) return;
 
-    confidenceText.textContent = `Confidence: ${confidencePercent}%`;
+        // Clear existing options except the first one
+        correctSpeciesSelect.innerHTML = '<option value="">Select correct species...</option>';
 
-    showFeedbackBtn.classList.remove('d-none');
+        // Add all classes as options
+        allClasses.forEach(className => {
+            const option = document.createElement('option');
+            option.value = className;
+            option.textContent = formatClassName(className);
+            correctSpeciesSelect.appendChild(option);
+        });
+    }
 
-    // Set confidence badge color        window.currentPrediction = result.prediction;
-
-    if (confidencePercent >= 80) { }
-
-    confidenceBadge.style.background = 'var(--gradient-success)';
-
-} else if (confidencePercent >= 60) {    // Copy breed name to clipboard
-
-    confidenceBadge.style.background = 'var(--gradient-primary)'; copyBreedBtn.addEventListener('click', async () => {
-
-    } else {
-        try {
-
-            confidenceBadge.style.background = 'var(--gradient-purple)'; await navigator.clipboard.writeText(currentBreedName);
-
-        }            copyBreedBtn.classList.add('copy-success');
-
-        copyBreedBtn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
-
-        // Display top predictions            showToast('Breed name copied to clipboard', 'success', 2000);
-
-        predictionsList.innerHTML = '';
-
-        if(data.breeds && data.scores) {
-            setTimeout(() => {
-
-                data.breeds.forEach((breed, index) => {
-                    copyBreedBtn.classList.remove('copy-success');
-
-                    const score = Math.round(data.scores[index] * 100); copyBreedBtn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy Breed';
-
-                    const item = document.createElement('div');
-                }, 2000);
-
-                item.className = 'prediction-item';
-            } catch (err) {
-
-                item.innerHTML = `            console.error('Failed to copy: ', err);
-
-                    <div class="prediction-item-left">            showToast('Failed to copy breed name', 'error');
-
-                        <div class="rank-badge">${index + 1}</div>        }
-
-                        <div class="prediction-item-name">${formatClassName(breed)}</div>    });
-
-                    </div>
-
-                    <div class="prediction-item-score">${score}%</div>    // Image upload event
-
-                `; imageUpload.addEventListener('change', (e) => {
-
-                    predictionsList.appendChild(item); const file = e.target.files[0];
-
-                }); handleImageUpload(file);
-
-            }
+    // File Upload Handlers (prevent duplicate processing)
+    fileInput.addEventListener('change', function (e) {
+        if (e.target.files.length > 0 && !isProcessing) {
+            handleFile(e.target.files[0]);
+        }
     });
 
+    // Drag and Drop
+    // Clicking the upload zone should open the file dialog, but if the user
+    // clicks the internal "Browse Files" button (which also opens the dialog),
+    // we must ignore the outer zone click to avoid opening the file dialog twice.
+    uploadZone.addEventListener('click', function (e) {
+        // If click originated from inside an element with class 'btn-browse', ignore
+        try {
+            if (e.target && e.target.closest && e.target.closest('.btn-browse')) {
+                return;
+            }
+        } catch (err) {
+            // ignore and continue
+        }
+        fileInput.click();
+    });
 
-
-    // Show results    // Drag and drop functionality
-
-    resultContainer.classList.remove('d-none'); uploadArea.addEventListener('dragover', (e) => {
-
+    uploadZone.addEventListener('dragover', function (e) {
         e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
 
-        // Smooth scroll to results        uploadArea.classList.add('dragover');
+    uploadZone.addEventListener('dragleave', function () {
+        uploadZone.classList.remove('dragover');
+    });
 
-        setTimeout(() => { });
+    uploadZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
 
-        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    }, 100); uploadArea.addEventListener('dragleave', (e) => {
-
-    }        e.preventDefault();
-
-    uploadArea.classList.remove('dragover');
-
-    // Convert data URI to Blob    });
-
-    function dataURItoBlob(dataURI) {
-
-        const byteString = atob(dataURI.split(',')[1]); uploadArea.addEventListener('drop', (e) => {
-
-            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]; e.preventDefault();
-
-            const ab = new ArrayBuffer(byteString.length); uploadArea.classList.remove('dragover');
-
-            const ia = new Uint8Array(ab); const file = e.dataTransfer.files[0];
-
-            for (let i = 0; i < byteString.length; i++) {
-                if (file && file.type.startsWith('image/')) {
-
-                    ia[i] = byteString.charCodeAt(i); imageUpload.files = e.dataTransfer.files;
-
-                } handleImageUpload(file);
-
-                return new Blob([ab], { type: mimeString });
-            } else {
-
-            } showToast('Please drop a valid image file', 'error');
-
+    // Handle File Selection
+    function handleFile(file) {
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select a valid image file', 'error');
+            return;
         }
 
-    // Show toast notification    });
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('Image must be less than 10MB', 'error');
+            return;
+        }
 
-    function showToast(message, type = 'info') {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            currentImageData = e.target.result;
+            previewImage.src = e.target.result;
+            previewFilename.textContent = file.name;
+            previewSize.textContent = formatFileSize(file.size);
 
-                const toast = document.createElement('div');    // Click to upload
+            // Show preview
+            uploadZone.style.display = 'none';
+            previewSection.style.display = 'block';
+            resultsPanel.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
 
-                toast.className = `toast-notification toast-${type}`; uploadArea.addEventListener('click', () => {
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
 
-                    toast.innerHTML = `        imageUpload.click();
+    // Clear Image
+    window.clearImage = function () {
+        fileInput.value = '';
+        currentImageData = null;
+        currentPrediction = null;
+        isProcessing = false; // Reset processing flag
+        uploadZone.style.display = 'block';
+        previewSection.style.display = 'none';
+        processingState.style.display = 'none';
+        resultsPanel.style.display = 'none';
 
-            <i class="bi bi-${type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>    });
+        // Hide feedback section if visible
+        const feedbackSection = document.getElementById('feedback-section');
+        if (feedbackSection) {
+            feedbackSection.style.display = 'none';
+        }
+    };
 
-            <span>${message}</span>
+    // Analyze Image (prevent duplicate submissions)
+    window.analyzeImage = async function () {
+        if (!currentImageData) {
+            showToast('No image selected', 'error');
+            return;
+        }
 
-        `;    // Prediction handler
+        if (isProcessing) {
+            showToast('Already processing...', 'info');
+            return;
+        }
 
-                    predictButton.addEventListener('click', async () => {
+        // Set processing flag
+        isProcessing = true;
 
-                        document.body.appendChild(toast); const imageFile = imageUpload.files[0];
+        // Show processing state
+        previewSection.style.display = 'none';
+        processingState.style.display = 'block';
+        resultsPanel.style.display = 'none';
 
-                        if (!imageFile) {
+        // Hide feedback section if visible
+        const feedbackSection = document.getElementById('feedback-section');
+        if (feedbackSection) {
+            feedbackSection.style.display = 'none';
+        }
 
-                            setTimeout(() => {
-                                showToast('Please upload an image first', 'error');
+        try {
+            // Convert base64 to blob
+            const blob = dataURItoBlob(currentImageData);
+            const formData = new FormData();
+            formData.append('file', blob, 'image.jpg');
 
-                                toast.style.opacity = '1'; return;
+            // Make prediction request
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
 
-                                toast.style.transform = 'translateY(0)';
-                            }
-
-        }, 10);
-
-                    const formData = new FormData();
-
-                    setTimeout(() => {
-                        formData.append('file', imageFile);
-
-                        toast.style.opacity = '0';
-
-                        toast.style.transform = 'translateY(-20px)'; predictButton.disabled = true;
-
-                        setTimeout(() => toast.remove(), 300); predictButton.innerHTML = '<span class="loading me-2"></span>Analyzing...';
-
-                    }, 3000);
-
-                }        try {
-
-                    const res = await fetch('/predict', { method: 'POST', body: formData });
-
-                    // Initialize - Load available classes
-
-                    async function loadClasses() {
-                        if (!res.ok) {
-
-                            try {
-                                throw new Error(`HTTP error! status: ${res.status}`);
-
-                                const response = await fetch('/classes');
-                            }
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Prediction failed');
+            }
 
             const data = await response.json();
+            currentPrediction = data;
 
-                            if (data.num_classes) {
-                                const result = await res.json();
+            // Show results
+            displayResults(data);
+            showToast('Analysis complete!', 'success');
 
-                                document.getElementById('total-classes').textContent = data.num_classes;
+        } catch (error) {
+            console.error('Prediction error:', error);
+            showToast(error.message || 'Prediction failed', 'error');
+            previewSection.style.display = 'block';
+            processingState.style.display = 'none';
+        } finally {
+            // Reset processing flag
+            isProcessing = false;
+        }
+    };
 
-                            } if (result.error) {
+    // Display Results
+    function displayResults(data) {
+        // Hide processing, show results
+        processingState.style.display = 'none';
+        resultsPanel.style.display = 'block';
 
-                            } catch (error) {
-                                throw new Error(result.error);
+        // Update primary result
+        const emoji = getAnimalEmoji(data.prediction);
+        resultIcon.textContent = emoji;
+        resultName.textContent = formatClassName(data.prediction);
 
-                                console.error('Failed to load classes:', error);
-                            }
+        // Update confidence
+        const confidencePercent = Math.round(data.confidence * 100);
+        confidenceValue.textContent = confidencePercent + '%';
 
-                        }
+        // Animate confidence bar
+        setTimeout(() => {
+            confidenceBar.style.width = confidencePercent + '%';
+        }, 100);
 
-                    } await displayPrediction(result);
+        // Display top predictions
+        predictionsList.innerHTML = '';
+        if (data.breeds && data.scores) {
+            data.breeds.forEach((breed, index) => {
+                const score = Math.round(data.scores[index] * 100);
+                const item = document.createElement('div');
+                item.className = 'prediction-item';
+                item.innerHTML = `
+                    <div class="prediction-info">
+                        <div class="prediction-rank">${index + 1}</div>
+                        <div class="prediction-species">${formatClassName(breed)}</div>
+                    </div>
+                    <div class="prediction-score">${score}%</div>
+                `;
+                predictionsList.appendChild(item);
+            });
+        }
 
-                    showToast('Analysis completed successfully', 'success');
+        // Smooth scroll to results
+        setTimeout(() => {
+            resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 200);
+    }
 
-                    loadClasses();
-                } catch (err) {
+    // Download Results
+    window.downloadResults = function () {
+        if (!currentPrediction) {
+            showToast('No results to download', 'error');
+            return;
+        }
 
-                }); console.error('Prediction error:', err);
+        const results = {
+            prediction: formatClassName(currentPrediction.prediction),
+            confidence: Math.round(currentPrediction.confidence * 100) + '%',
+            timestamp: new Date().toISOString(),
+            topPredictions: currentPrediction.breeds.map((breed, idx) => ({
+                rank: idx + 1,
+                species: formatClassName(breed),
+                confidence: Math.round(currentPrediction.scores[idx] * 100) + '%'
+            }))
+        };
 
+        const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `animal-classification-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
 
+        showToast('Results downloaded!', 'success');
+    };
 
-        // Add toast notification styles dynamically            // Show error in prediction card
+    // Convert data URI to Blob
+    function dataURItoBlob(dataURI) {
+        const byteString = atob(dataURI.split(',')[1]);
+        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ab], { type: mimeString });
+    }
 
-        const toastStyles = document.createElement('style'); classEmoji.textContent = '❌';
+    // Show Toast Notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
 
-        toastStyles.textContent = `            mainClassLabel.textContent = 'Error';
+        const icon = type === 'success' ? 'check-circle-fill' :
+            type === 'error' ? 'exclamation-circle-fill' : 'info-circle-fill';
 
-    .toast-notification {            breedDisplay.classList.remove('d-none');
+        toast.innerHTML = `
+            <i class="bi bi-${icon}"></i>
+            <span>${message}</span>
+        `;
 
-        position: fixed;            breedName.textContent = 'Failed to analyze image';
+        const container = document.getElementById('toast-container');
+        container.appendChild(toast);
 
-        top: 20px;            confidenceText.textContent = 'Please try again';
+        setTimeout(() => {
+            toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
-        right: 20px;            resultContainer.classList.remove('d-none');
+    // Toggle Feedback Section
+    window.toggleFeedback = function () {
+        const feedbackSection = document.getElementById('feedback-section');
+        if (!feedbackSection) return;
 
-        padding: 1rem 1.5rem;
+        if (!currentPrediction) {
+            showToast('No prediction available', 'error');
+            return;
+        }
 
-        background: rgba(30, 41, 59, 0.95);            showToast('Failed to analyze image. Please try again.', 'error');
+        const isVisible = feedbackSection.style.display === 'block';
+        feedbackSection.style.display = isVisible ? 'none' : 'block';
 
-        backdrop-filter: blur(10px);        } finally {
+        if (!isVisible) {
+            // Update current prediction display - use correct ID from HTML
+            const currentPredictionEl = document.getElementById('feedback-current');
+            if (currentPredictionEl) {
+                currentPredictionEl.textContent = formatClassName(currentPrediction.prediction);
+            }
 
-        border: 1px solid rgba(99, 102, 241, 0.3);            predictButton.disabled = false;
+            // Scroll feedback into view
+            setTimeout(() => {
+                feedbackSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        } else {
+            // Clear form when hiding - use correct IDs from HTML
+            const correctSpeciesSelect = document.getElementById('correct-species-select');
+            const feedbackComments = document.getElementById('feedback-comments');
+            if (correctSpeciesSelect) correctSpeciesSelect.value = '';
+            if (feedbackComments) feedbackComments.value = '';
+        }
+    };
 
-        border-radius: 1rem;            predictButton.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Image';
+    // Submit Feedback
+    window.submitFeedback = async function () {
+        const correctSpeciesSelect = document.getElementById('correct-species-select');
+        const feedbackComments = document.getElementById('feedback-comments');
 
-        color: #f1f5f9;        }
+        if (!correctSpeciesSelect || !feedbackComments) {
+            showToast('Feedback form not found', 'error');
+            return;
+        }
 
-        display: flex;    });
+        const correctSpecies = correctSpeciesSelect.value;
+        const comments = feedbackComments.value.trim();
 
-        align-items: center;
+        // Validation
+        if (!correctSpecies) {
+            showToast('Please select the correct species', 'error');
+            correctSpeciesSelect.focus();
+            return;
+        }
 
-        gap: 0.5rem;    // Feedback submit
+        if (!currentPrediction) {
+            showToast('No prediction data available', 'error');
+            return;
+        }
 
-        z-index: 9999;    submitCorrectionButton.addEventListener('click', async () => {
-
-        opacity: 0;        const corrected = correctionDropdown.value;
-
-        transform: translateY(-20px);        const imageFile = imageUpload.files[0];
-
-        transition: all 0.3s ease;
-
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);        if (!corrected) {
-
-    }            showToast('Please select a correct class', 'error');
-
-                return;
-
-    .toast-error {        }
-
-        border-color: #ef4444;
-
-    }        if (!imageFile) {
-
-                showToast('No image to submit feedback for', 'error');
-
-    .dragover {            return;
-
-        border-color: #6366f1 !important;        }
-
-        background: rgba(99, 102, 241, 0.05) !important;
-
-    }        const formData = new FormData();
-
-`; formData.append('file', imageFile);
-
-        document.head.appendChild(toastStyles); formData.append('predicted', window.currentPrediction || 'Unknown');
-
-        formData.append('actual', corrected);
-
-        submitCorrectionButton.disabled = true;
-        submitCorrectionButton.innerHTML = '<span class="loading me-2"></span>Submitting...';
+        // Prepare feedback data with image
+        const feedbackData = {
+            predicted_class: currentPrediction.prediction,
+            correct_class: correctSpecies,
+            confidence: currentPrediction.confidence,
+            comments: comments || '',
+            timestamp: new Date().toISOString(),
+            image_data: currentImageData  // Include the image for retraining
+        };
 
         try {
-            const res = await fetch('/feedback', { method: 'POST', body: formData });
+            // Submit feedback to backend
+            const response = await fetch('/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(feedbackData)
+            });
 
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to submit feedback');
             }
 
-            const result = await res.json();
+            const result = await response.json();
 
-            showToast(result.message, 'success');
-            feedbackCard.classList.remove('show');
-            submitCorrectionButton.innerHTML = '<i class="bi bi-check me-1"></i>Submitted!';
+            // Show success message with retraining info
+            let successMessage = 'Feedback submitted successfully! Thank you.';
+            if (result.retraining_triggered) {
+                successMessage += ' 🎓 Model retraining started in background.';
+            }
+            showToast(successMessage, 'success');
 
-            setTimeout(() => {
-                submitCorrectionButton.innerHTML = '<i class="bi bi-check me-1"></i>Submit Correction';
-                submitCorrectionButton.disabled = false;
-            }, 3000);
-        } catch (e) {
-            console.error('Feedback error:', e);
-            showToast('Error submitting feedback. Please try again.', 'error');
-            submitCorrectionButton.innerHTML = '<i class="bi bi-check me-1"></i>Submit Correction';
-            submitCorrectionButton.disabled = false;
+            // Clear and hide feedback form
+            correctSpeciesSelect.value = '';
+            feedbackComments.value = '';
+            document.getElementById('feedback-section').style.display = 'none';
+
+        } catch (error) {
+            console.error('Feedback submission error:', error);
+            showToast(error.message || 'Failed to submit feedback', 'error');
         }
-    });
+    };
 
-    // Toggle feedback
-    showFeedbackBtn.addEventListener('click', () => {
-        new bootstrap.Collapse(feedbackCard, { toggle: true });
-    });
+    // Cancel Feedback
+    window.cancelFeedback = function () {
+        const feedbackSection = document.getElementById('feedback-section');
+        const correctSpeciesSelect = document.getElementById('correct-species-select');
+        const feedbackComments = document.getElementById('feedback-comments');
 
-    // Add slideOutRight animation for toast removal
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideOutRight {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-        }
-    `;
-    document.head.appendChild(style);
+        // Clear form
+        if (correctSpeciesSelect) correctSpeciesSelect.value = '';
+        if (feedbackComments) feedbackComments.value = '';
+
+        // Hide section
+        if (feedbackSection) feedbackSection.style.display = 'none';
+
+        showToast('Feedback cancelled', 'info');
+    };
 
     // Initialize
-    loadClassOptions();
+    loadClassesCount();
 });
+
+// Add toast slide out animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes toastSlideOut {
+        to {
+            opacity: 0;
+            transform: translateX(120%);
+        }
+    }
+`;
+document.head.appendChild(style);
