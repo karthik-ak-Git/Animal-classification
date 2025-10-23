@@ -8,7 +8,8 @@ from pathlib import Path
 from PIL import Image
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 
 class TestFeedbackLoop:
@@ -110,7 +111,8 @@ class TestDatasetIntegrity:
                             assert img is not None
                             return  # Test passed
                         except Exception as e:
-                            pytest.fail(f"Failed to load image {img_path}: {e}")
+                            pytest.fail(
+                                f"Failed to load image {img_path}: {e}")
 
 
 class TestModelPersistence:

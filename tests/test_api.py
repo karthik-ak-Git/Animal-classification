@@ -10,7 +10,8 @@ import sys
 import os
 
 # Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 
 @pytest.fixture
@@ -59,7 +60,7 @@ class TestClassesEndpoint:
         response = client.get("/classes")
         # May return 500 if model not loaded in test environment
         assert response.status_code in [200, 500]
-        
+
         if response.status_code == 200:
             data = response.json()
             assert "num_classes" in data
